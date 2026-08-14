@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://queueless-india-a2ju.onrender.com/api";
 
 function LiveQueue() {
   const [queue, setQueue] = useState([]);
@@ -26,63 +26,71 @@ function LiveQueue() {
   const [error, setError] = useState("");
 
   const loadQueue = async () => {
-    try {
-      setError("");
+  try {
+    setError("");
 
-      const response = await fetch(
-        `${API_URL}/queue/status`
-      );
+    // Get the citizen's token first
+    const savedToken = localStorage.getItem(
+      "queueless_user_token"
+    );
 
-      if (!response.ok) {
-        throw new Error("Unable to load queue");
-      }
+    let parsedToken = null;
 
-      const data = await response.json();
-
-      setQueue(data.queue || []);
-      setCurrentToken(data.currentToken || null);
-
-      // Get the citizen's token saved during token generation
-      const savedToken = localStorage.getItem(
-        "queueless_user_token"
-      );
-
-      if (savedToken) {
-        const parsedToken = JSON.parse(savedToken);
-
-        setUserToken(parsedToken);
-
-        const waitingTokens = (data.queue || []).filter(
-          (token) => token.status === "waiting"
-        );
-
-        const userIndex = waitingTokens.findIndex(
-          (token) =>
-            token._id === parsedToken._id
-        );
-
-        if (userIndex >= 0) {
-          setPeopleAhead(userIndex);
-        } else {
-          setPeopleAhead(0);
-        }
-
-        const averageTime =
-          parsedToken.service?.averageTime || 15;
-
-        setEstimatedWait(
-          userIndex > 0
-            ? userIndex * averageTime
-            : 0
-        );
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Unable to connect to the live queue.");
-    } finally {
-      setLoading(false);
+    if (savedToken) {
+      parsedToken = JSON.parse(savedToken);
+      setUserToken(parsedToken);
     }
-  };
+
+    // Get the service ID from the user's token
+    const serviceId = parsedToken?.service?._id;
+
+    // Load only this service's queue
+    const queueUrl = serviceId
+      ? `${API_URL}/queue/status?serviceId=${serviceId}`
+      : `${API_URL}/queue/status`;
+
+    const response = await fetch(queueUrl);
+
+    if (!response.ok) {
+      throw new Error("Unable to load queue");
+    }
+
+    const data = await response.json();
+
+    setQueue(data.queue || []);
+    setCurrentToken(data.currentToken || null);
+
+    if (parsedToken) {
+      const waitingTokens = (data.queue || []).filter(
+        (token) => token.status === "waiting"
+      );
+
+      const userIndex = waitingTokens.findIndex(
+        (token) => token._id === parsedToken._id
+      );
+
+      if (userIndex >= 0) {
+        setPeopleAhead(userIndex);
+      } else {
+        setPeopleAhead(0);
+      }
+
+      const averageTime =
+        parsedToken.service?.averageTime || 15;
+
+      setEstimatedWait(
+        userIndex > 0
+          ? userIndex * averageTime
+          : 0
+      );
+    }
+  } catch (err) {
+    console.error(err);
+    setError("Unable to connect to the live queue.");
+  } finally {
+    setLoading(false);
+  }
+};
 
  useEffect(() => {
   const timer = setTimeout(() => {

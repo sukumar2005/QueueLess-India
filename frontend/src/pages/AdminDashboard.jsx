@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://queueless-india-a2ju.onrender.com/api";
 
 function AdminDashboard() {
   const [services, setServices] = useState([]);

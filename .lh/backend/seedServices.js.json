@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/seedServices.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1786682990659,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1786682990659,
+            "name": "Commit-0",
+            "content": "require(\"dotenv\").config();\r\n\r\nconst mongoose = require(\"mongoose\");\r\nconst Service = require(\"./models/Service\");\r\n\r\nconst services = [\r\n  {\r\n    name: \"Aadhaar Services\",\r\n    department: \"UIDAI Services\",\r\n    office: \"Aadhaar Seva Centre\",\r\n    documents: [\r\n      \"Aadhaar Card\",\r\n      \"Identity Proof\",\r\n      \"Address Proof\",\r\n    ],\r\n    averageTime: 15,\r\n    available: true,\r\n  },\r\n  {\r\n    name: \"Birth Certificate\",\r\n    department: \"Municipal Administration\",\r\n    office: \"Municipal Office\",\r\n    documents: [\r\n      \"Hospital Birth Record\",\r\n      \"Parent ID Proof\",\r\n      \"Address Proof\",\r\n    ],\r\n    averageTime: 15,\r\n    available: true,\r\n  },\r\n  {\r\n    name: \"Community Certificate\",\r\n    department: \"Revenue Department\",\r\n    office: \"Taluk Office\",\r\n    documents: [\r\n      \"Aadhaar Card\",\r\n      \"Address Proof\",\r\n      \"Parent Community Certificate\",\r\n    ],\r\n    averageTime: 20,\r\n    available: true,\r\n  },\r\n  {\r\n    name: \"Driving Licence\",\r\n    department: \"Transport Department\",\r\n    office: \"RTO Office\",\r\n    documents: [\r\n      \"Learner Licence\",\r\n      \"Aadhaar Card\",\r\n      \"Address Proof\",\r\n    ],\r\n    averageTime: 30,\r\n    available: true,\r\n  },\r\n  {\r\n    name: \"Income Certificate\",\r\n    department: \"Revenue Department\",\r\n    office: \"Taluk Office\",\r\n    documents: [\r\n      \"Aadhaar Card\",\r\n      \"Address Proof\",\r\n      \"Income Proof\",\r\n    ],\r\n    averageTime: 20,\r\n    available: true,\r\n  },\r\n  {\r\n    name: \"Property Registration\",\r\n    department: \"Registration Department\",\r\n    office: \"Sub-Registrar Office\",\r\n    documents: [\r\n      \"Sale Deed\",\r\n      \"Identity Proof\",\r\n      \"Property Documents\",\r\n      \"Stamp Duty Receipt\",\r\n    ],\r\n    averageTime: 40,\r\n    available: true,\r\n  },\r\n];\r\n\r\nconst seedServices = async () => {\r\n  try {\r\n    await mongoose.connect(process.env.MONGO_URI);\r\n\r\n    console.log(\"MongoDB connected\");\r\n\r\n    await Service.deleteMany({});\r\n\r\n    const createdServices = await Service.insertMany(services);\r\n\r\n    console.log(\r\n      `Successfully inserted ${createdServices.length} services`\r\n    );\r\n\r\n    createdServices.forEach((service) => {\r\n      console.log(`${service.name} -> ${service._id}`);\r\n    });\r\n\r\n    await mongoose.connection.close();\r\n\r\n    console.log(\"Database connection closed\");\r\n    process.exit(0);\r\n  } catch (error) {\r\n    console.error(\"Seed error:\");\r\n    console.error(error.message);\r\n\r\n    process.exit(1);\r\n  }\r\n};\r\n\r\nseedServices();"
+        }
+    ]
+}

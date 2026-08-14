@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/checkServices.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1786684192818,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1786684192818,
+            "name": "Commit-0",
+            "content": "require(\"dotenv\").config();\r\n\r\nconst mongoose = require(\"mongoose\");\r\nconst Service = require(\"./models/Service\");\r\n\r\nasync function checkServices() {\r\n  try {\r\n    const uri = process.env.MONGO_URI;\r\n\r\n    if (!uri) {\r\n      throw new Error(\"MONGO_URI is missing\");\r\n    }\r\n\r\n    await mongoose.connect(uri);\r\n\r\n    console.log(\"================================\");\r\n    console.log(\"DATABASE CHECK\");\r\n    console.log(\"================================\");\r\n\r\n    console.log(\"Database:\", mongoose.connection.name);\r\n    console.log(\"Host:\", mongoose.connection.host);\r\n\r\n    const collections = await mongoose.connection.db\r\n      .listCollections()\r\n      .toArray();\r\n\r\n    console.log(\r\n      \"Collections:\",\r\n      collections.map((c) => c.name)\r\n    );\r\n\r\n    const count = await Service.countDocuments();\r\n\r\n    console.log(\"Service count:\", count);\r\n\r\n    const services = await Service.find({})\r\n      .select(\"name department office\")\r\n      .lean();\r\n\r\n    console.log(\"Services:\");\r\n\r\n    services.forEach((service) => {\r\n      console.log(\r\n        `- ${service.name} | ${service.department} | ${service.office}`\r\n      );\r\n    });\r\n\r\n    console.log(\"================================\");\r\n\r\n    await mongoose.disconnect();\r\n  } catch (error) {\r\n    console.error(\"CHECK FAILED:\");\r\n    console.error(error.message);\r\n    process.exit(1);\r\n  }\r\n}\r\n\r\ncheckServices();"
+        }
+    ]
+}

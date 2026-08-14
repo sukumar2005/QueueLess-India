@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { predictQueue } from "../utils/queuePrediction";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://queueless-india-a2ju.onrender.com/api";
 
 function ServiceDetails() {
   const { id } = useParams();
@@ -22,6 +22,8 @@ function ServiceDetails() {
   const [queueData, setQueueData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const serviceId = service?._id || service?.id;
 
   // ==========================================
   // LOAD SERVICE
@@ -470,19 +472,24 @@ function ServiceDetails() {
                 </p>
 
               </div>
+              
 
               {/* TOKEN */}
 
-              <Link
-                to={`/token/${service._id}`}
-                state={{ service }}
-                className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-blue-700 py-3.5 font-semibold text-white hover:bg-blue-800"
-              >
-                Get Digital Token
+             {/* TOKEN */}
 
-                <ArrowRight className="h-4 w-4" />
+<Link
+  to={`/token/${serviceId}`}
+  state={{
+    service,
+    serviceId,
+  }}
+  className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-blue-700 py-3.5 font-semibold text-white hover:bg-blue-800"
+>
+  Get Digital Token
 
-              </Link>
+  <ArrowRight className="h-4 w-4" />
+</Link>
 
             </div>
 
