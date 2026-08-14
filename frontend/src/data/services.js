@@ -1,0 +1,93 @@
+export const services = [
+  {
+    id: "birth-certificate",
+    name: "Birth Certificate",
+    department: "Municipal Administration",
+    office: "Coimbatore Municipal Office",
+    category: "Certificates",
+    description:
+      "Apply for and obtain an official birth certificate from the municipal administration.",
+    processingTime: "12 minutes",
+    waitingTime: 42,
+    peopleWaiting: 23,
+    availableOfficers: 3,
+    totalOfficers: 4,
+    status: "Open",
+    recommendedTime: "9:30 AM",
+    documents: [
+      "Hospital Birth Record",
+      "Parent ID Proof",
+      "Address Proof",
+      "Application Form",
+    ],
+  },
+
+  {
+    id: "income-certificate",
+    name: "Income Certificate",
+    department: "Revenue Department",
+    office: "Taluk Revenue Office",
+    category: "Certificates",
+    description:
+      "Apply for an official income certificate for government schemes and other services.",
+    processingTime: "15 minutes",
+    waitingTime: 31,
+    peopleWaiting: 17,
+    availableOfficers: 2,
+    totalOfficers: 3,
+    status: "Open",
+    recommendedTime: "10:00 AM",
+    documents: [
+      "Aadhaar Card",
+      "Address Proof",
+      "Income Proof",
+      "Application Form",
+    ],
+  },
+
+  {
+    id: "community-certificate",
+    name: "Community Certificate",
+    department: "Revenue Department",
+    office: "Taluk Revenue Office",
+    category: "Certificates",
+    description:
+      "Apply for a community certificate through the revenue administration.",
+    processingTime: "18 minutes",
+    waitingTime: 35,
+    peopleWaiting: 19,
+    availableOfficers: 2,
+    totalOfficers: 3,
+    status: "Open",
+    recommendedTime: "9:45 AM",
+    documents: [
+      "Aadhaar Card",
+      "Address Proof",
+      "Parent Community Certificate",
+      "Application Form",
+    ],
+  },
+
+  {
+    id: "residence-certificate",
+    name: "Residence Certificate",
+    department: "Revenue Department",
+    office: "Taluk Revenue Office",
+    category: "Certificates",
+    description:
+      "Apply for an official residence certificate.",
+    processingTime: "14 minutes",
+    waitingTime: 26,
+    peopleWaiting: 12,
+    availableOfficers: 3,
+    totalOfficers: 3,
+    status: "Open",
+    recommendedTime: "11:00 AM",
+    documents: [
+      "Aadhaar Card",
+      "Address Proof",
+      "Electricity Bill",
+      "Application Form",
+    ],
+  },
+];
