@@ -1,6 +1,7 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
 const http = require("http");
 
 const connectDB = require("./config/db");
@@ -8,18 +9,14 @@ const connectDB = require("./config/db");
 const queueRoutes = require("./routes/queueRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 
-dotenv.config();
-
 const app = express();
 
 const server = http.createServer(app);
 
 app.use(cors());
-
 app.use(express.json());
 
 app.use("/api/queue", queueRoutes);
-
 app.use("/api/services", serviceRoutes);
 
 app.get("/", (req, res) => {
@@ -43,7 +40,7 @@ const startServer = async () => {
   try {
     await connectDB();
 
-    server.listen(PORT, () => {
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(
         `QueueLess India server running on port ${PORT}`
       );

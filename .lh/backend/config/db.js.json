@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/config/db.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1786681410128,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1786681410128,
+            "name": "Commit-0",
+            "content": "const mongoose = require(\"mongoose\");\r\n\r\nconst connectDB = async () => {\r\n  try {\r\n    const mongoUri = process.env.MONGO_URI;\r\n\r\n    if (!mongoUri) {\r\n      throw new Error(\"MONGO_URI environment variable is missing\");\r\n    }\r\n\r\n    const trimmedUri = mongoUri.trim();\r\n\r\n    console.log(\r\n      `MongoDB URI detected: ${trimmedUri.substring(0, 15)}...`\r\n    );\r\n\r\n    if (\r\n      !trimmedUri.startsWith(\"mongodb://\") &&\r\n      !trimmedUri.startsWith(\"mongodb+srv://\")\r\n    ) {\r\n      throw new Error(\r\n        \"MONGO_URI must start with mongodb:// or mongodb+srv://\"\r\n      );\r\n    }\r\n\r\n    await mongoose.connect(trimmedUri);\r\n\r\n    console.log(\"MongoDB connected successfully\");\r\n  } catch (error) {\r\n    console.error(\"MongoDB connection failed:\");\r\n    console.error(error.message);\r\n\r\n    process.exit(1);\r\n  }\r\n};\r\n\r\nmodule.exports = connectDB;"
+        }
+    ]
+}

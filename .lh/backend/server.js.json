@@ -1,0 +1,26 @@
+{
+    "sourceFile": "backend/server.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 2,
+            "patches": [
+                {
+                    "date": 1786681358325,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1786681541523,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,4 +1,5 @@\n+server.listen(PORT, \"0.0.0.0\", () => {\r\n require(\"dotenv\").config();\r\n \r\n const express = require(\"express\");\r\n const cors = require(\"cors\");\r\n"
+                },
+                {
+                    "date": 1786681596909,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,4 @@\n-server.listen(PORT, \"0.0.0.0\", () => {\r\n require(\"dotenv\").config();\r\n \r\n const express = require(\"express\");\r\n const cors = require(\"cors\");\r\n@@ -14,13 +13,11 @@\n \r\n const server = http.createServer(app);\r\n \r\n app.use(cors());\r\n-\r\n app.use(express.json());\r\n \r\n app.use(\"/api/queue\", queueRoutes);\r\n-\r\n app.use(\"/api/services\", serviceRoutes);\r\n \r\n app.get(\"/\", (req, res) => {\r\n   res.json({\r\n"
+                }
+            ],
+            "date": 1786681358325,
+            "name": "Commit-0",
+            "content": "require(\"dotenv\").config();\r\n\r\nconst express = require(\"express\");\r\nconst cors = require(\"cors\");\r\nconst http = require(\"http\");\r\n\r\nconst connectDB = require(\"./config/db\");\r\n\r\nconst queueRoutes = require(\"./routes/queueRoutes\");\r\nconst serviceRoutes = require(\"./routes/serviceRoutes\");\r\n\r\nconst app = express();\r\n\r\nconst server = http.createServer(app);\r\n\r\napp.use(cors());\r\n\r\napp.use(express.json());\r\n\r\napp.use(\"/api/queue\", queueRoutes);\r\n\r\napp.use(\"/api/services\", serviceRoutes);\r\n\r\napp.get(\"/\", (req, res) => {\r\n  res.json({\r\n    success: true,\r\n    message: \"QueueLess India API is running\",\r\n  });\r\n});\r\n\r\napp.get(\"/api/health\", (req, res) => {\r\n  res.json({\r\n    success: true,\r\n    service: \"QueueLess India Backend\",\r\n    status: \"healthy\",\r\n  });\r\n});\r\n\r\nconst PORT = process.env.PORT || 5000;\r\n\r\nconst startServer = async () => {\r\n  try {\r\n    await connectDB();\r\n\r\n    server.listen(PORT, \"0.0.0.0\", () => {\r\n      console.log(\r\n        `QueueLess India server running on port ${PORT}`\r\n      );\r\n    });\r\n  } catch (error) {\r\n    console.error(\"Server startup failed:\");\r\n    console.error(error.message);\r\n    process.exit(1);\r\n  }\r\n};\r\n\r\nstartServer();"
+        }
+    ]
+}
