@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/models/Officer.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787058468233,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787058468233,
+            "name": "Commit-0",
+            "content": "const mongoose = require(\"mongoose\");\n\nconst officerSchema = new mongoose.Schema(\n  {\n    name: {\n      type: String,\n      required: true,\n    },\n\n    department: {\n      type: String,\n      required: true,\n    },\n\n    designation: {\n      type: String,\n    },\n\n    governmentOffice: {\n      type: mongoose.Schema.Types.ObjectId,\n      ref: \"GovernmentOffice\",\n    },\n\n    counter: {\n      type: Number,\n      default: 1,\n    },\n\n    expectedArrival: {\n      type: String,\n      default: \"\",\n    },\n\n    currentWaiting: {\n      type: Number,\n      default: 0,\n    },\n    attendanceStatus: {\n      type: String,\n      enum: [\"Present\", \"Absent\", \"On Break\", \"Away\"],\n      default: \"Present\",\n    },\n    isOnBreak: {\n      type: Boolean,\n      default: false,\n    },\n    workingHoursStart: {\n      type: String,\n      default: \"09:00\",\n    },\n    workingHoursEnd: {\n      type: String,\n      default: \"18:00\",\n    },\n    breakReason: {\n      type: String,\n      default: \"\",\n    },\n    lastCheckInAt: {\n      type: Date,\n      default: null,\n    },\n    lastBreakStartedAt: {\n      type: Date,\n      default: null,\n    },\n    lastBreakEndedAt: {\n      type: Date,\n      default: null,\n    },\n    averageServiceTime: {\n      type: Number,\n      default: 15,\n    },\n\n    purposes: {\n      type: [String],\n      default: [],\n    },\n\n    status: {\n      type: String,\n      enum: [\n        \"Available\",\n        \"Busy\",\n        \"Offline\",\n      ],\n      default: \"Available\",\n    },\n  },\n  {\n    timestamps: true,\n  }\n);\n\nmodule.exports = mongoose.model(\"Officer\", officerSchema);\n"
+        }
+    ]
+}

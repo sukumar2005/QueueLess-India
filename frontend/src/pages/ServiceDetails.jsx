@@ -514,7 +514,7 @@ function InfoRow({ icon, label, value }) {
         </span>
       </div>
 
-      <span className="max-w-[150px] text-right text-sm font-bold text-slate-900">
+      <span className="max-w-37.5 text-right text-sm font-bold text-slate-900">
         {value}
       </span>
     </div>

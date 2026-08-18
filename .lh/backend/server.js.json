@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 2,
+            "activePatchIndex": 5,
             "patches": [
                 {
                     "date": 1786681358325,
@@ -16,6 +16,18 @@
                 {
                     "date": 1786681596909,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,4 @@\n-server.listen(PORT, \"0.0.0.0\", () => {\r\n require(\"dotenv\").config();\r\n \r\n const express = require(\"express\");\r\n const cors = require(\"cors\");\r\n@@ -14,13 +13,11 @@\n \r\n const server = http.createServer(app);\r\n \r\n app.use(cors());\r\n-\r\n app.use(express.json());\r\n \r\n app.use(\"/api/queue\", queueRoutes);\r\n-\r\n app.use(\"/api/services\", serviceRoutes);\r\n \r\n app.get(\"/\", (req, res) => {\r\n   res.json({\r\n"
+                },
+                {
+                    "date": 1787058468280,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -7,18 +7,25 @@\n const connectDB = require(\"./config/db\");\r\n \r\n const queueRoutes = require(\"./routes/queueRoutes\");\r\n const serviceRoutes = require(\"./routes/serviceRoutes\");\r\n+const hospitalRoutes = require(\"./routes/hospitalRoutes\");\r\n+const governmentOfficeRoutes = require(\"./routes/governmentOfficeRoutes\");\r\n+const authRoutes = require(\"./routes/authRoutes\");\r\n+const { seedAdmin, createDemoAccounts } = require(\"./controllers/authController\");\r\n \r\n const app = express();\r\n \r\n const server = http.createServer(app);\r\n \r\n app.use(cors());\r\n app.use(express.json());\r\n \r\n+app.use(\"/api/auth\", authRoutes);\r\n app.use(\"/api/queue\", queueRoutes);\r\n app.use(\"/api/services\", serviceRoutes);\r\n+app.use(\"/api/hospitals\", hospitalRoutes);\r\n+app.use(\"/api/government-offices\", governmentOfficeRoutes);\r\n \r\n app.get(\"/\", (req, res) => {\r\n   res.json({\r\n     success: true,\r\n@@ -38,8 +45,10 @@\n \r\n const startServer = async () => {\r\n   try {\r\n     await connectDB();\r\n+    await seedAdmin();\r\n+    await createDemoAccounts();\r\n \r\n     server.listen(PORT, \"0.0.0.0\", () => {\r\n       console.log(\r\n         `QueueLess India server running on port ${PORT}`\r\n@@ -51,5 +60,5 @@\n     process.exit(1);\r\n   }\r\n };\r\n \r\n-startServer();\n\\ No newline at end of file\n+startServer();\r\n"
+                },
+                {
+                    "date": 1787058897891,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -10,8 +10,9 @@\n const serviceRoutes = require(\"./routes/serviceRoutes\");\r\n const hospitalRoutes = require(\"./routes/hospitalRoutes\");\r\n const governmentOfficeRoutes = require(\"./routes/governmentOfficeRoutes\");\r\n const authRoutes = require(\"./routes/authRoutes\");\r\n+const notificationRoutes = require(\"./routes/notificationRoutes\");\r\n const { seedAdmin, createDemoAccounts } = require(\"./controllers/authController\");\r\n \r\n const app = express();\r\n \r\n@@ -24,8 +25,9 @@\n app.use(\"/api/queue\", queueRoutes);\r\n app.use(\"/api/services\", serviceRoutes);\r\n app.use(\"/api/hospitals\", hospitalRoutes);\r\n app.use(\"/api/government-offices\", governmentOfficeRoutes);\r\n+app.use(\"/api/notifications\", notificationRoutes);\r\n \r\n app.get(\"/\", (req, res) => {\r\n   res.json({\r\n     success: true,\r\n"
+                },
+                {
+                    "date": 1787059080370,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,8 +11,9 @@\n const hospitalRoutes = require(\"./routes/hospitalRoutes\");\r\n const governmentOfficeRoutes = require(\"./routes/governmentOfficeRoutes\");\r\n const authRoutes = require(\"./routes/authRoutes\");\r\n const notificationRoutes = require(\"./routes/notificationRoutes\");\r\n+const analyticsRoutes = require(\"./routes/analyticsRoutes\");\r\n const { seedAdmin, createDemoAccounts } = require(\"./controllers/authController\");\r\n \r\n const app = express();\r\n \r\n@@ -26,8 +27,9 @@\n app.use(\"/api/services\", serviceRoutes);\r\n app.use(\"/api/hospitals\", hospitalRoutes);\r\n app.use(\"/api/government-offices\", governmentOfficeRoutes);\r\n app.use(\"/api/notifications\", notificationRoutes);\r\n+app.use(\"/api/analytics\", analyticsRoutes);\r\n \r\n app.get(\"/\", (req, res) => {\r\n   res.json({\r\n     success: true,\r\n"
                 }
             ],
             "date": 1786681358325,

@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/models/Doctor.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787058468232,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787058468232,
+            "name": "Commit-0",
+            "content": "const mongoose = require(\"mongoose\");\n\nconst doctorSchema = new mongoose.Schema(\n  {\n    name: {\n      type: String,\n      required: true,\n    },\n    specialization: {\n      type: String,\n      required: true,\n    },\n    hospital: {\n      type: mongoose.Schema.Types.ObjectId,\n      ref: \"Hospital\",\n      required: true,\n    },\n    room: {\n      type: String,\n      required: true,\n    },\n    available: {\n      type: Boolean,\n      default: true,\n    },\n    expectedArrival: {\n      type: String,\n      default: \"\",\n    },\n    currentPatients: {\n      type: Number,\n      default: 0,\n    },\n    attendanceStatus: {\n      type: String,\n      enum: [\"Present\", \"Absent\", \"On Break\", \"Away\"],\n      default: \"Present\",\n    },\n    isOnBreak: {\n      type: Boolean,\n      default: false,\n    },\n    workingHoursStart: {\n      type: String,\n      default: \"09:00\",\n    },\n    workingHoursEnd: {\n      type: String,\n      default: \"18:00\",\n    },\n    breakReason: {\n      type: String,\n      default: \"\",\n    },\n    lastCheckInAt: {\n      type: Date,\n      default: null,\n    },\n    lastBreakStartedAt: {\n      type: Date,\n      default: null,\n    },\n    lastBreakEndedAt: {\n      type: Date,\n      default: null,\n    },\n    averageConsultationTime: {\n      type: Number,\n      default: 15,\n    },\n    problems: {\n      type: [String],\n      default: [],\n    },\n  },\n  {\n    timestamps: true,\n  }\n);\n\nmodule.exports = mongoose.model(\"Doctor\", doctorSchema);\n"
+        }
+    ]
+}

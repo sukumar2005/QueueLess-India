@@ -21,6 +21,7 @@ function OfficerDashboard() {
 
   const [queue, setQueue] = useState([]);
   const [currentToken, setCurrentToken] = useState(null);
+  const [officerCounter, setOfficerCounter] = useState(1);
 
   const [loadingServices, setLoadingServices] = useState(true);
   const [loadingQueue, setLoadingQueue] = useState(false);
@@ -164,6 +165,7 @@ useEffect(() => {
 
           body: JSON.stringify({
             serviceId: selectedService,
+            counter: officerCounter,
           }),
         }
       );
@@ -333,7 +335,7 @@ useEffect(() => {
             </h1>
 
             <p className="mt-1 text-sm text-slate-500">
-              Municipal Administration • Counter 3
+              Municipal Administration • Counter {officerCounter}
             </p>
 
           </div>
@@ -462,7 +464,7 @@ useEffect(() => {
           <StatCard
             icon={<User />}
             title="Counter"
-            value="3"
+            value={officerCounter}
             description="Officer available"
           />
 
@@ -580,6 +582,19 @@ useEffect(() => {
             </div>
 
             <div className="flex gap-3">
+
+              <select
+                value={officerCounter}
+                onChange={(event) =>
+                  setOfficerCounter(Number(event.target.value))
+                }
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                aria-label="Officer counter"
+              >
+                <option value={1}>Counter 1</option>
+                <option value={2}>Counter 2</option>
+                <option value={3}>Counter 3</option>
+              </select>
 
               <button
                 onClick={loadQueue}

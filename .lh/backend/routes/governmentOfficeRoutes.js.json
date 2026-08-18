@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/routes/governmentOfficeRoutes.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787058468185,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787058468185,
+            "name": "Commit-0",
+            "content": "const express = require(\"express\");\n\nconst {\n  getGovernmentOffices,\n  getOfficeOfficers,\n  updateOfficerAttendance,\n  createOfficeToken,\n  getOfficeQueueStatus,\n  callNextOfficeToken,\n  completeOfficeToken,\n  skipOfficeToken,\n} = require(\"../controllers/governmentOfficeController\");\nconst {\n  authMiddleware,\n  requireRole,\n  requireOfficeAccess,\n} = require(\"../utils/auth\");\n\nconst router = express.Router();\n\nrouter.get(\"/\", getGovernmentOffices);\nrouter.get(\"/:id/officers\", getOfficeOfficers);\nrouter.post(\n  \"/:id/officers/:officerId/attendance\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"GOVERNMENT OFFICE\"),\n  requireOfficeAccess,\n  updateOfficerAttendance\n);\nrouter.post(\n  \"/tokens\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"GOVERNMENT OFFICE\"),\n  requireOfficeAccess,\n  createOfficeToken\n);\nrouter.get(\n  \"/queue/status\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"GOVERNMENT OFFICE\"),\n  requireOfficeAccess,\n  getOfficeQueueStatus\n);\nrouter.post(\n  \"/queue/next\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"GOVERNMENT OFFICE\"),\n  requireOfficeAccess,\n  callNextOfficeToken\n);\nrouter.post(\n  \"/queue/complete\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"GOVERNMENT OFFICE\"),\n  requireOfficeAccess,\n  completeOfficeToken\n);\nrouter.post(\n  \"/queue/skip\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"GOVERNMENT OFFICE\"),\n  requireOfficeAccess,\n  skipOfficeToken\n);\n\nmodule.exports = router;\n"
+        }
+    ]
+}

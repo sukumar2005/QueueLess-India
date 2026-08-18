@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 13,
+            "activePatchIndex": 14,
             "patches": [
                 {
                     "date": 1786682529778,
@@ -60,6 +60,10 @@
                 {
                     "date": 1787036101817,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -500,6 +500,25 @@\n \r\n   </div>\r\n );\r\n }\r\n+function InfoRow({ icon, label, value }) {\r\n+  return (\r\n+    <div className=\"flex items-center justify-between rounded-xl bg-slate-50 p-4\">\r\n+      <div className=\"flex items-center gap-3\">\r\n+        <div className=\"flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700\">\r\n+          {icon}\r\n+        </div>\r\n \r\n+        <span className=\"text-sm font-medium text-slate-600\">\r\n+          {label}\r\n+        </span>\r\n+      </div>\r\n+\r\n+      <span className=\"max-w-[150px] text-right text-sm font-bold text-slate-900\">\r\n+        {value}\r\n+      </span>\r\n+    </div>\r\n+  );\r\n+}\r\n+\r\n export default ServiceDetails;\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1787059187099,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -513,9 +513,9 @@\n           {label}\r\n         </span>\r\n       </div>\r\n \r\n-      <span className=\"max-w-[150px] text-right text-sm font-bold text-slate-900\">\r\n+      <span className=\"max-w-37.5 text-right text-sm font-bold text-slate-900\">\r\n         {value}\r\n       </span>\r\n     </div>\r\n   );\r\n"
                 }
             ],
             "date": 1786682529778,

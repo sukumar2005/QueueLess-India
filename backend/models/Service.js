@@ -17,6 +17,41 @@ const serviceSchema = new mongoose.Schema(
       required: true,
     },
 
+    category: {
+      type: String,
+      default: "Government Service",
+    },
+
+    purpose: {
+      type: String,
+      default: "",
+    },
+
+    officerRole: {
+      type: String,
+      default: "",
+    },
+
+    processingTime: {
+      type: String,
+      default: "",
+    },
+
+    applicationSteps: {
+      type: [String],
+      default: [],
+    },
+
+    guidance: {
+      type: String,
+      default: "",
+    },
+
+    stateInfo: {
+      type: Object,
+      default: {},
+    },
+
     documents: {
       type: [String],
       default: [],

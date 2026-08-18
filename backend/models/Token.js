@@ -10,7 +10,50 @@ const tokenSchema = new mongoose.Schema(
     service: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Service",
-      required: true,
+    },
+
+    tokenType: {
+      type: String,
+      enum: ["service", "hospital", "office"],
+      default: "service",
+    },
+
+    source: {
+      type: String,
+      enum: ["online", "offline"],
+      default: "online",
+    },
+
+    hospital: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hospital",
+    },
+
+    doctor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+    },
+
+    governmentOffice: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "GovernmentOffice",
+    },
+
+    officer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Officer",
+    },
+
+    phone: {
+      type: String,
+    },
+
+    problem: {
+      type: String,
+    },
+
+    expectedTime: {
+      type: String,
     },
 
     citizenName: {
@@ -31,7 +74,7 @@ const tokenSchema = new mongoose.Schema(
 
     counter: {
       type: Number,
-      default: 3,
+      default: null,
     },
 
     createdAt: {
