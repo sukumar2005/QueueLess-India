@@ -1,0 +1,18 @@
+{
+    "sourceFile": "frontend/src/utils/queuePrediction.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787034712672,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787034712672,
+            "name": "Commit-0",
+            "content": "// QueueLess India\r\n// Smart Queue Waiting-Time Prediction\r\n\r\nexport function predictQueue({\r\n  peopleWaiting = 0,\r\n  averageServiceTime = 15,\r\n  availableOfficers = 1,\r\n  totalOfficers = 1,\r\n}) {\r\n  const waiting = Math.max(0, Number(peopleWaiting) || 0);\r\n\r\n  const serviceTime =\r\n    Math.max(1, Number(averageServiceTime) || 15);\r\n\r\n  const officers =\r\n    Math.max(1, Number(availableOfficers) || 1);\r\n\r\n  const total =\r\n    Math.max(officers, Number(totalOfficers) || officers);\r\n\r\n  // ------------------------------------------\r\n  // ESTIMATED WAITING TIME\r\n  // ------------------------------------------\r\n  const predictedWait = Math.ceil(\r\n    (waiting * serviceTime) / officers\r\n  );\r\n\r\n  // ------------------------------------------\r\n  // CROWD / DEMAND LEVEL\r\n  // ------------------------------------------\r\n  let demandLevel;\r\n  let crowdStatus;\r\n\r\n  if (waiting === 0) {\r\n    demandLevel = \"Low\";\r\n    crowdStatus = \"🟢 Low\";\r\n  } else if (waiting <= 3) {\r\n    demandLevel = \"Moderate\";\r\n    crowdStatus = \"🟡 Moderate\";\r\n  } else if (waiting <= 7) {\r\n    demandLevel = \"High\";\r\n    crowdStatus = \"🟠 High\";\r\n  } else {\r\n    demandLevel = \"Very High\";\r\n    crowdStatus = \"🔴 Very High\";\r\n  }\r\n\r\n  // ------------------------------------------\r\n  // OFFICER CAPACITY\r\n  // ------------------------------------------\r\n  const officerAvailability =\r\n    officers >= total\r\n      ? \"All counters available\"\r\n      : `${officers} of ${total} counters available`;\r\n\r\n  // ------------------------------------------\r\n  // RECOMMENDATION\r\n  // ------------------------------------------\r\n  let recommendation;\r\n\r\n  if (waiting === 0) {\r\n    recommendation =\r\n      \"No queue currently. This is a good time to visit.\";\r\n  } else if (predictedWait <= 15) {\r\n    recommendation =\r\n      \"Short waiting time. You can visit now.\";\r\n  } else if (predictedWait <= 30) {\r\n    recommendation =\r\n      \"Moderate waiting time. Consider arriving soon.\";\r\n  } else {\r\n    recommendation =\r\n      \"High waiting time. Consider visiting later if possible.\";\r\n  }\r\n\r\n  // ------------------------------------------\r\n  // PROTOTYPE VISIT RECOMMENDATION\r\n  // ------------------------------------------\r\n  let recommendedTime;\r\n\r\n  if (waiting === 0) {\r\n    recommendedTime = \"Now\";\r\n  } else if (predictedWait <= 15) {\r\n    recommendedTime = \"Now\";\r\n  } else if (predictedWait <= 30) {\r\n    recommendedTime = \"Within 30 minutes\";\r\n  } else {\r\n    recommendedTime = \"Later\";\r\n  }\r\n\r\n  return {\r\n    predictedWait,\r\n    demandLevel,\r\n    crowdStatus,\r\n    officerAvailability,\r\n    recommendedTime,\r\n    recommendation,\r\n  };\r\n}"
+        }
+    ]
+}

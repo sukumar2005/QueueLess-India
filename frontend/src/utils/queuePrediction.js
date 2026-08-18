@@ -1,5 +1,5 @@
 // QueueLess India
-// AI Queue Prediction Engine
+// Smart Queue Waiting-Time Prediction
 
 export function predictQueue({
   peopleWaiting = 0,
@@ -7,58 +7,92 @@ export function predictQueue({
   availableOfficers = 1,
   totalOfficers = 1,
 }) {
-  const officers = Math.max(
-    availableOfficers,
-    1
+  const waiting = Math.max(0, Number(peopleWaiting) || 0);
+
+  const serviceTime =
+    Math.max(1, Number(averageServiceTime) || 15);
+
+  const officers =
+    Math.max(1, Number(availableOfficers) || 1);
+
+  const total =
+    Math.max(officers, Number(totalOfficers) || officers);
+
+  // ------------------------------------------
+  // ESTIMATED WAITING TIME
+  // ------------------------------------------
+  const predictedWait = Math.ceil(
+    (waiting * serviceTime) / officers
   );
 
-  const estimatedWait = Math.ceil(
-    (peopleWaiting * averageServiceTime) /
-      officers
-  );
+  // ------------------------------------------
+  // CROWD / DEMAND LEVEL
+  // ------------------------------------------
+  let demandLevel;
+  let crowdStatus;
 
-  const demand = Math.min(
-    Math.round(
-      (peopleWaiting /
-        Math.max(totalOfficers * 8, 1)) *
-        100
-    ),
-    100
-  );
-
-  let demandLevel = "Low";
-
-  if (demand >= 70) {
-    demandLevel = "High";
-  } else if (demand >= 40) {
+  if (waiting === 0) {
+    demandLevel = "Low";
+    crowdStatus = "🟢 Low";
+  } else if (waiting <= 3) {
     demandLevel = "Moderate";
+    crowdStatus = "🟡 Moderate";
+  } else if (waiting <= 7) {
+    demandLevel = "High";
+    crowdStatus = "🟠 High";
+  } else {
+    demandLevel = "Very High";
+    crowdStatus = "🔴 Very High";
   }
 
-  let recommendation =
-    "Queue conditions are currently favorable.";
+  // ------------------------------------------
+  // OFFICER CAPACITY
+  // ------------------------------------------
+  const officerAvailability =
+    officers >= total
+      ? "All counters available"
+      : `${officers} of ${total} counters available`;
 
-  if (demandLevel === "Moderate") {
+  // ------------------------------------------
+  // RECOMMENDATION
+  // ------------------------------------------
+  let recommendation;
+
+  if (waiting === 0) {
     recommendation =
-      "Moderate demand detected. Consider visiting during the recommended period.";
-  }
-
-  if (demandLevel === "High") {
+      "No queue currently. This is a good time to visit.";
+  } else if (predictedWait <= 15) {
     recommendation =
-      "High demand detected. Consider adding an officer during peak hours.";
+      "Short waiting time. You can visit now.";
+  } else if (predictedWait <= 30) {
+    recommendation =
+      "Moderate waiting time. Consider arriving soon.";
+  } else {
+    recommendation =
+      "High waiting time. Consider visiting later if possible.";
   }
 
-  const predictedWait = Math.max(
-    estimatedWait - 5,
-    5
-  );
+  // ------------------------------------------
+  // PROTOTYPE VISIT RECOMMENDATION
+  // ------------------------------------------
+  let recommendedTime;
+
+  if (waiting === 0) {
+    recommendedTime = "Now";
+  } else if (predictedWait <= 15) {
+    recommendedTime = "Now";
+  } else if (predictedWait <= 30) {
+    recommendedTime = "Within 30 minutes";
+  } else {
+    recommendedTime = "Later";
+  }
 
   return {
-    estimatedWait,
     predictedWait,
-    demand,
     demandLevel,
+    crowdStatus,
+    officerAvailability,
+    recommendedTime,
     recommendation,
-    peakPeriod: "11:00 AM – 1:00 PM",
-    recommendedTime: "10:30 AM",
   };
 }
