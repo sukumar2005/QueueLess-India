@@ -1,8 +1,10 @@
 import {
+
   ArrowLeft,
   BarChart3,
   Building2,
   Clock3,
+  MessageSquare,
   RefreshCw,
   TrendingUp,
   UserCheck,
@@ -20,6 +22,7 @@ function AdminDashboard() {
   const [hospitals, setHospitals] = useState([]);
   const [offices, setOffices] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [complaints, setComplaints] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,13 +31,18 @@ function AdminDashboard() {
     try {
       setError("");
 
-      const [analyticsResponse, servicesResponse, queueResponse, hospitalsResponse, officesResponse] =
+      const session = JSON.parse(localStorage.getItem("queueless_session") || "{}");
+
+      const [analyticsResponse, servicesResponse, queueResponse, hospitalsResponse, officesResponse, complaintsResponse] =
         await Promise.all([
           fetch(`${API_URL}/analytics/summary`),
           fetch(`${API_URL}/services`),
           fetch(`${API_URL}/queue/status`),
           fetch(`${API_URL}/hospitals`),
           fetch(`${API_URL}/government-offices`),
+          fetch(`${API_URL}/complaints`, {
+            headers: { Authorization: `Bearer ${session.token}` },
+          }),
         ]);
 
       if (!analyticsResponse.ok) {
@@ -62,12 +70,14 @@ function AdminDashboard() {
       const queueData = await queueResponse.json();
       const hospitalsData = await hospitalsResponse.json();
       const officesData = await officesResponse.json();
+      const complaintsData = complaintsResponse.ok ? await complaintsResponse.json() : { complaints: [] };
 
       setServices(servicesData.services || []);
       setQueue(queueData.queue || []);
       setHospitals(hospitalsData.hospitals || []);
       setOffices(officesData.offices || []);
       setNotifications(analyticsData.recentNotifications || []);
+      setComplaints(complaintsData.complaints || []);
     } catch (err) {
       console.error(err);
 
@@ -134,6 +144,8 @@ function AdminDashboard() {
       : 0;
 
   const unreadNotifications = notifications.filter((item) => !item.read).length;
+  const openComplaints = complaints.filter((c) => c.status === "Open").length;
+  const inProgressComplaints = complaints.filter((c) => c.status === "In Progress").length;
 
   const getServiceCount = (serviceId) => {
     return queue.filter(
@@ -257,7 +269,7 @@ function AdminDashboard() {
 
         </div>
 
-        <section className="mt-8 grid gap-4 lg:grid-cols-3">
+        <section className="mt-8 grid gap-4 lg:grid-cols-4">
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Healthcare Units</p>
             <p className="mt-3 text-3xl font-black text-slate-900">{hospitals.length}</p>
@@ -274,6 +286,12 @@ function AdminDashboard() {
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Notifications</p>
             <p className="mt-3 text-3xl font-black text-slate-900">{unreadNotifications}</p>
             <p className="mt-1 text-sm text-slate-500">Unread status updates</p>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Complaints</p>
+            <p className="mt-3 text-3xl font-black text-slate-900">{openComplaints}</p>
+            <p className="mt-1 text-sm text-slate-500">Open issues ({inProgressComplaints} in progress)</p>
           </div>
         </section>
 
@@ -588,6 +606,58 @@ function AdminDashboard() {
           </p>
 
         </div>
+
+        {/* COMPLAINTS MANAGEMENT */}
+
+        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+
+          <div className="mb-6 flex items-center justify-between">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-700">
+                <MessageSquare className="h-5 w-5" />
+              </div>
+
+              <div>
+
+                <h2 className="text-xl font-bold">Complaints</h2>
+
+                <p className="text-sm text-slate-500">Monitor citizen issues</p>
+
+              </div>
+
+            </div>
+
+            <Link
+              to="/complaints"
+              className="rounded-xl bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+            >
+              View All
+            </Link>
+
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-600">Open</p>
+              <p className="mt-2 text-2xl font-black text-red-700">{openComplaints}</p>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-600">In Progress</p>
+              <p className="mt-2 text-2xl font-black text-orange-700">{inProgressComplaints}</p>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-600">Total</p>
+              <p className="mt-2 text-2xl font-black text-blue-700">{complaints.length}</p>
+            </div>
+
+          </div>
+
+        </section>
 
       </main>
 

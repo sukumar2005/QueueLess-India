@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 3,
+            "activePatchIndex": 4,
             "patches": [
                 {
                     "date": 1787042322311,
@@ -20,6 +20,10 @@
                 {
                     "date": 1787059170990,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -7,9 +7,9 @@\n   FileText,\n   Hospital,\n   ShieldCheck,\n } from \"lucide-react\";\n-import { useEffect, useMemo, useState } from \"react\";\n+import { useEffect, useState } from \"react\";\n \n import Services from \"./pages/Services\";\n import ServiceDetails from \"./pages/ServiceDetails\";\n \n"
+                },
+                {
+                    "date": 1787062609174,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -20,8 +20,9 @@\n import TokenPage from \"./pages/TokenPage\";\n import Hospitals from \"./pages/Hospitals\";\n import GovernmentOffices from \"./pages/GovernmentOffices\";\n import Documents from \"./pages/Documents\";\n+import Complaints from \"./pages/Complaints\";\n import AiAssistant from \"./pages/AiAssistant\";\n import HospitalLiveQueue from \"./pages/HospitalLiveQueue\";\n import HospitalDashboard from \"./pages/HospitalDashboard\";\n import OfficeLiveQueue from \"./pages/OfficeLiveQueue\";\n@@ -207,8 +208,9 @@\n         <Route path=\"/token/:id\" element={<TokenPage />} />\n         <Route path=\"/hospitals\" element={hasUserAccess ? <Hospitals /> : <Navigate to=\"/login\" replace />} />\n         <Route path=\"/government-offices\" element={hasUserAccess ? <GovernmentOffices /> : <Navigate to=\"/login\" replace />} />\n         <Route path=\"/documents\" element={hasUserAccess ? <Documents /> : <Navigate to=\"/login\" replace />} />\n+        <Route path=\"/complaints\" element={<Complaints />} />\n         <Route path=\"/ai-assistant\" element={hasUserAccess ? <AiAssistant /> : <Navigate to=\"/login\" replace />} />\n \n         <Route path=\"/hospital-dashboard\" element={hasHospitalAccess ? <HospitalDashboard /> : <Navigate to=\"/login\" replace />} />\n         <Route path=\"/hospital-queue/:tokenId\" element={hasHospitalAccess ? <HospitalLiveQueue /> : <Navigate to=\"/login\" replace />} />\n"
                 }
             ],
             "date": 1787042322311,

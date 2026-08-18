@@ -8,63 +8,394 @@ const Notification = require("../models/Notification");
 
 const getAnalyticsSummary = async (req, res) => {
   try {
-    const [services, hospitals, offices, doctors, officers, tokens, notifications] =
-      await Promise.all([
-        Service.find(),
-        Hospital.find(),
-        GovernmentOffice.find(),
-        Doctor.find(),
-        Officer.find(),
-        Token.find({ status: { $in: ["waiting", "serving", "completed"] } }).populate("service"),
-        Notification.find().sort({ createdAt: -1 }).limit(50),
-      ]);
+    // =====================================================
+    // LOAD DATA
+    // =====================================================
+
+    const [
+      services,
+      hospitals,
+      offices,
+      doctors,
+      officers,
+      tokens,
+      notifications,
+    ] = await Promise.all([
+      Service.find(),
+      Hospital.find(),
+      GovernmentOffice.find(),
+      Doctor.find(),
+      Officer.find(),
+
+      Token.find({
+        status: {
+          $in: [
+            "waiting",
+            "serving",
+            "completed",
+            "skipped",
+          ],
+        },
+      }).populate("service"),
+
+      Notification.find()
+        .sort({ createdAt: -1 })
+        .limit(50),
+    ]);
+
+    // =====================================================
+    // BASIC COUNTS
+    // =====================================================
 
     const totalServices = services.length;
+
     const totalHospitals = hospitals.length;
+
     const totalOffices = offices.length;
 
-    const activeDoctors = doctors.filter((d) => d.attendanceStatus === "Present").length;
-    const activeOfficers = officers.filter((o) => o.attendanceStatus === "Present").length;
+    const totalDoctors = doctors.length;
 
-    const totalWaitingTokens = tokens.filter((t) => t.status === "waiting").length;
-    const totalServingTokens = tokens.filter((t) => t.status === "serving").length;
-    const totalCompletedTokens = tokens.filter((t) => t.status === "completed").length;
+    const totalOfficers = officers.length;
 
-    const unreadNotifications = notifications.filter((n) => !n.read).length;
+    // =====================================================
+    // ATTENDANCE
+    // =====================================================
+
+    const activeDoctors = doctors.filter(
+      (doctor) =>
+        doctor.attendanceStatus === "Present"
+    ).length;
+
+    const activeOfficers = officers.filter(
+      (officer) =>
+        officer.attendanceStatus === "Present"
+    ).length;
+
+    // =====================================================
+    // TOKEN STATUS
+    // =====================================================
+
+    const totalTokens = tokens.length;
+
+    const totalWaitingTokens = tokens.filter(
+      (token) =>
+        token.status === "waiting"
+    ).length;
+
+    const totalServingTokens = tokens.filter(
+      (token) =>
+        token.status === "serving"
+    ).length;
+
+    const totalCompletedTokens = tokens.filter(
+      (token) =>
+        token.status === "completed"
+    ).length;
+
+    const totalSkippedTokens = tokens.filter(
+      (token) =>
+        token.status === "skipped"
+    ).length;
+
+    // =====================================================
+    // ONLINE / OFFLINE TOKENS
+    // =====================================================
+
+    const onlineTokens = tokens.filter(
+      (token) =>
+        token.source === "online"
+    ).length;
+
+    const offlineTokens = tokens.filter(
+      (token) =>
+        token.source === "offline"
+    ).length;
+
+    // =====================================================
+    // TODAY'S TOKENS
+    // =====================================================
+
+    const today = new Date();
+
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    const todayTokens = tokens.filter(
+      (token) =>
+        token.createdAt >= startOfDay &&
+        token.createdAt < endOfDay
+    );
+
+    const todayTokenCount =
+      todayTokens.length;
+
+    const todayCompletedTokens =
+      todayTokens.filter(
+        (token) =>
+          token.status === "completed"
+      ).length;
+
+    // =====================================================
+    // COMPLETION RATE
+    // =====================================================
+
+    const processedTokens =
+      totalCompletedTokens +
+      totalSkippedTokens;
+
+    const completionRate =
+      processedTokens > 0
+        ? Number(
+            (
+              (totalCompletedTokens /
+                processedTokens) *
+              100
+            ).toFixed(2)
+          )
+        : 0;
+
+    // =====================================================
+    // AVERAGE SERVICE TIME
+    // =====================================================
+
+    const completedWithTime =
+      tokens.filter(
+        (token) =>
+          token.status === "completed" &&
+          token.createdAt &&
+          token.servedAt
+      );
+
+    let averageServiceTime = 0;
+
+    if (completedWithTime.length > 0) {
+      const totalServiceTime =
+        completedWithTime.reduce(
+          (total, token) => {
+            const start =
+              new Date(
+                token.createdAt
+              ).getTime();
+
+            const end =
+              new Date(
+                token.servedAt
+              ).getTime();
+
+            return (
+              total +
+              (end - start)
+            );
+          },
+          0
+        );
+
+      averageServiceTime = Math.round(
+        totalServiceTime /
+          completedWithTime.length /
+          60000
+      );
+    }
+
+    // =====================================================
+    // NOTIFICATIONS
+    // =====================================================
+
+    const unreadNotifications =
+      notifications.filter(
+        (notification) =>
+          !notification.read
+      ).length;
+
+    // =====================================================
+    // SERVICE-WISE QUEUE DATA
+    // =====================================================
 
     const serviceQueueData = {};
 
     services.forEach((service) => {
-      const serviceTokens = tokens.filter((t) => t.service?._id?.toString() === service._id.toString());
-      serviceQueueData[service._id] = {
+      const serviceTokens =
+        tokens.filter(
+          (token) =>
+            token.service?._id?.toString() ===
+            service._id.toString()
+        );
+
+      serviceQueueData[
+        service._id
+      ] = {
         name: service.name,
-        department: service.department,
-        waiting: serviceTokens.filter((t) => t.status === "waiting").length,
-        serving: serviceTokens.filter((t) => t.status === "serving").length,
-        completed: serviceTokens.filter((t) => t.status === "completed").length,
+
+        department:
+          service.department,
+
+        total:
+          serviceTokens.length,
+
+        waiting:
+          serviceTokens.filter(
+            (token) =>
+              token.status ===
+              "waiting"
+          ).length,
+
+        serving:
+          serviceTokens.filter(
+            (token) =>
+              token.status ===
+              "serving"
+          ).length,
+
+        completed:
+          serviceTokens.filter(
+            (token) =>
+              token.status ===
+              "completed"
+          ).length,
+
+        skipped:
+          serviceTokens.filter(
+            (token) =>
+              token.status ===
+              "skipped"
+          ).length,
       };
     });
 
+    // =====================================================
+    // DAILY ANALYTICS
+    // =====================================================
+
+    const dailyStats = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+
+      date.setDate(
+        date.getDate() - i
+      );
+
+      const dayStart = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+      );
+
+      const dayEnd = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate() + 1
+      );
+
+      const dayTokens =
+        tokens.filter(
+          (token) =>
+            token.createdAt >=
+              dayStart &&
+            token.createdAt <
+              dayEnd
+        );
+
+      dailyStats.push({
+        date:
+          dayStart
+            .toISOString()
+            .split("T")[0],
+
+        total:
+          dayTokens.length,
+
+        completed:
+          dayTokens.filter(
+            (token) =>
+              token.status ===
+              "completed"
+          ).length,
+
+        waiting:
+          dayTokens.filter(
+            (token) =>
+              token.status ===
+              "waiting"
+          ).length,
+
+        serving:
+          dayTokens.filter(
+            (token) =>
+              token.status ===
+              "serving"
+          ).length,
+
+        skipped:
+          dayTokens.filter(
+            (token) =>
+              token.status ===
+              "skipped"
+          ).length,
+      });
+    }
+
+    // =====================================================
+    // RESPONSE
+    // =====================================================
+
     res.json({
       success: true,
+
       summary: {
         totalServices,
         totalHospitals,
         totalOffices,
+
+        totalDoctors,
+        totalOfficers,
+
         activeDoctors,
         activeOfficers,
-        totalDoctors: doctors.length,
-        totalOfficers: officers.length,
+
+        totalTokens,
+
         totalWaitingTokens,
         totalServingTokens,
         totalCompletedTokens,
+        totalSkippedTokens,
+
+        onlineTokens,
+        offlineTokens,
+
+        todayTokenCount,
+        todayCompletedTokens,
+
+        completionRate,
+        averageServiceTime,
+
         unreadNotifications,
       },
+
       serviceQueueData,
-      recentNotifications: notifications.slice(0, 10),
+
+      dailyStats,
+
+      recentNotifications:
+        notifications.slice(
+          0,
+          10
+        ),
     });
   } catch (error) {
-    console.error("Analytics summary error:", error);
+    console.error(
+      "Analytics summary error:",
+      error
+    );
 
     res.status(500).json({
       success: false,

@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/models/Complaint.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787062609112,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787062609112,
+            "name": "Commit-0",
+            "content": "const mongoose = require(\"mongoose\");\r\n\r\nconst complaintSchema = new mongoose.Schema(\r\n  {\r\n    title: {\r\n      type: String,\r\n      required: true,\r\n      trim: true,\r\n    },\r\n    description: {\r\n      type: String,\r\n      required: true,\r\n    },\r\n    category: {\r\n      type: String,\r\n      enum: [\r\n        \"Service Quality\",\r\n        \"Staff Behavior\",\r\n        \"Wait Time\",\r\n        \"Facilities\",\r\n        \"Other\",\r\n      ],\r\n      default: \"Other\",\r\n    },\r\n    severity: {\r\n      type: String,\r\n      enum: [\"Low\", \"Medium\", \"High\", \"Critical\"],\r\n      default: \"Medium\",\r\n    },\r\n    status: {\r\n      type: String,\r\n      enum: [\"Open\", \"In Progress\", \"Resolved\", \"Closed\"],\r\n      default: \"Open\",\r\n    },\r\n    location: {\r\n      type: String,\r\n      enum: [\"Hospital\", \"Government Office\"],\r\n      required: true,\r\n    },\r\n    hospital: {\r\n      type: mongoose.Schema.Types.ObjectId,\r\n      ref: \"Hospital\",\r\n      default: null,\r\n    },\r\n    governmentOffice: {\r\n      type: mongoose.Schema.Types.ObjectId,\r\n      ref: \"GovernmentOffice\",\r\n      default: null,\r\n    },\r\n    submittedBy: {\r\n      type: mongoose.Schema.Types.ObjectId,\r\n      ref: \"User\",\r\n      default: null,\r\n    },\r\n    submitterName: {\r\n      type: String,\r\n      required: true,\r\n    },\r\n    submitterPhone: {\r\n      type: String,\r\n      required: true,\r\n    },\r\n    resolution: {\r\n      type: String,\r\n      default: \"\",\r\n    },\r\n    resolvedAt: {\r\n      type: Date,\r\n      default: null,\r\n    },\r\n    rating: {\r\n      type: Number,\r\n      min: 1,\r\n      max: 5,\r\n      default: null,\r\n    },\r\n  },\r\n  {\r\n    timestamps: true,\r\n  }\r\n);\r\n\r\nmodule.exports = mongoose.model(\"Complaint\", complaintSchema);\r\n"
+        }
+    ]
+}

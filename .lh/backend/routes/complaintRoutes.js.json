@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/routes/complaintRoutes.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787062609113,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787062609113,
+            "name": "Commit-0",
+            "content": "const express = require(\"express\");\r\nconst {\r\n  submitComplaint,\r\n  getComplaints,\r\n  getComplaintById,\r\n  updateComplaintStatus,\r\n  addComplaintRating,\r\n} = require(\"../controllers/complaintController\");\r\nconst { authMiddleware } = require(\"../utils/auth\");\r\n\r\nconst router = express.Router();\r\n\r\nrouter.post(\"/\", submitComplaint);\r\nrouter.get(\"/\", authMiddleware, getComplaints);\r\nrouter.get(\"/:id\", authMiddleware, getComplaintById);\r\nrouter.patch(\"/:id/status\", authMiddleware, updateComplaintStatus);\r\nrouter.patch(\"/:id/rating\", addComplaintRating);\r\n\r\nmodule.exports = router;\r\n"
+        }
+    ]
+}

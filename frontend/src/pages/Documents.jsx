@@ -1,8 +1,11 @@
 import {
+  ArrowRight,
   Building2,
   CheckCircle2,
   Clock3,
   FileText,
+  MapPin,
+  Phone,
   Search,
   UserRound,
 } from "lucide-react";
@@ -286,6 +289,62 @@ function Documents() {
                   </ol>
                 </Panel>
 
+                <section className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-5">
+                  <h3 className="font-bold text-blue-900">
+                    How to Apply
+                  </h3>
+                  <ol className="mt-4 space-y-3">
+                    <li className="flex gap-3 text-sm text-blue-900">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white">
+                        1
+                      </span>
+                      <span>
+                        <strong>Prepare Documents:</strong> Gather all required documents mentioned above
+                      </span>
+                    </li>
+                    <li className="flex gap-3 text-sm text-blue-900">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white">
+                        2
+                      </span>
+                      <span>
+                        <strong>Visit Office:</strong> Go to the {selectedService.office} during office hours
+                      </span>
+                    </li>
+                    <li className="flex gap-3 text-sm text-blue-900">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white">
+                        3
+                      </span>
+                      <span>
+                        <strong>Get Token:</strong> Take an online or offline token using QueueLess
+                      </span>
+                    </li>
+                    <li className="flex gap-3 text-sm text-blue-900">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white">
+                        4
+                      </span>
+                      <span>
+                        <strong>Wait for Your Turn:</strong> Track your position in the live queue
+                      </span>
+                    </li>
+                    <li className="flex gap-3 text-sm text-blue-900">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white">
+                        5
+                      </span>
+                      <span>
+                        <strong>Submit Application:</strong> When called, proceed to the counter and submit your documents
+                      </span>
+                    </li>
+                    <li className="flex gap-3 text-sm text-blue-900">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white">
+                        6
+                      </span>
+                      <span>
+                        <strong>Processing:</strong> Your application will be processed within {selectedService.processingTime.toLowerCase()}
+                      </span>
+                    </li>
+                  </ol>
+                </section>
+
                 <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
                   <div className="flex gap-3">
                     <FileText className="h-5 w-5 text-amber-700" />
@@ -304,6 +363,30 @@ function Documents() {
                     </div>
                   </div>
                 </div>
+
+                <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-blue-700" />
+                    <h3 className="font-bold text-slate-900">
+                      Where Should I Go?
+                    </h3>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
+                    To apply for this service, visit the
+                    <span className="font-semibold"> {selectedService.office}</span>
+                    {" "}in your district. The service is handled by the
+                    <span className="font-semibold"> {selectedService.department}</span>
+                    {" "}department, and you can speak with a
+                    <span className="font-semibold"> {selectedService.officerRole || "Service Officer"}</span>.
+                  </p>
+                  <Link
+                    to="/government-offices"
+                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 font-semibold text-white transition hover:bg-blue-800"
+                  >
+                    Find Government Office
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </section>
               </section>
             )}
           </div>

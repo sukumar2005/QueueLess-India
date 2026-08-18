@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 5,
+            "activePatchIndex": 6,
             "patches": [
                 {
                     "date": 1786681358325,
@@ -28,6 +28,10 @@
                 {
                     "date": 1787059080370,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,8 +11,9 @@\n const hospitalRoutes = require(\"./routes/hospitalRoutes\");\r\n const governmentOfficeRoutes = require(\"./routes/governmentOfficeRoutes\");\r\n const authRoutes = require(\"./routes/authRoutes\");\r\n const notificationRoutes = require(\"./routes/notificationRoutes\");\r\n+const analyticsRoutes = require(\"./routes/analyticsRoutes\");\r\n const { seedAdmin, createDemoAccounts } = require(\"./controllers/authController\");\r\n \r\n const app = express();\r\n \r\n@@ -26,8 +27,9 @@\n app.use(\"/api/services\", serviceRoutes);\r\n app.use(\"/api/hospitals\", hospitalRoutes);\r\n app.use(\"/api/government-offices\", governmentOfficeRoutes);\r\n app.use(\"/api/notifications\", notificationRoutes);\r\n+app.use(\"/api/analytics\", analyticsRoutes);\r\n \r\n app.get(\"/\", (req, res) => {\r\n   res.json({\r\n     success: true,\r\n"
+                },
+                {
+                    "date": 1787062609157,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,8 +12,9 @@\n const governmentOfficeRoutes = require(\"./routes/governmentOfficeRoutes\");\r\n const authRoutes = require(\"./routes/authRoutes\");\r\n const notificationRoutes = require(\"./routes/notificationRoutes\");\r\n const analyticsRoutes = require(\"./routes/analyticsRoutes\");\r\n+const complaintRoutes = require(\"./routes/complaintRoutes\");\r\n const { seedAdmin, createDemoAccounts } = require(\"./controllers/authController\");\r\n \r\n const app = express();\r\n \r\n@@ -28,8 +29,9 @@\n app.use(\"/api/hospitals\", hospitalRoutes);\r\n app.use(\"/api/government-offices\", governmentOfficeRoutes);\r\n app.use(\"/api/notifications\", notificationRoutes);\r\n app.use(\"/api/analytics\", analyticsRoutes);\r\n+app.use(\"/api/complaints\", complaintRoutes);\r\n \r\n app.get(\"/\", (req, res) => {\r\n   res.json({\r\n     success: true,\r\n"
                 }
             ],
             "date": 1786681358325,

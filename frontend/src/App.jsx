@@ -21,6 +21,7 @@ import TokenPage from "./pages/TokenPage";
 import Hospitals from "./pages/Hospitals";
 import GovernmentOffices from "./pages/GovernmentOffices";
 import Documents from "./pages/Documents";
+import Complaints from "./pages/Complaints";
 import AiAssistant from "./pages/AiAssistant";
 import HospitalLiveQueue from "./pages/HospitalLiveQueue";
 import HospitalDashboard from "./pages/HospitalDashboard";
@@ -208,6 +209,7 @@ function AppShell({ session, setSession, logout }) {
         <Route path="/hospitals" element={hasUserAccess ? <Hospitals /> : <Navigate to="/login" replace />} />
         <Route path="/government-offices" element={hasUserAccess ? <GovernmentOffices /> : <Navigate to="/login" replace />} />
         <Route path="/documents" element={hasUserAccess ? <Documents /> : <Navigate to="/login" replace />} />
+        <Route path="/complaints" element={<Complaints />} />
         <Route path="/ai-assistant" element={hasUserAccess ? <AiAssistant /> : <Navigate to="/login" replace />} />
 
         <Route path="/hospital-dashboard" element={hasHospitalAccess ? <HospitalDashboard /> : <Navigate to="/login" replace />} />
