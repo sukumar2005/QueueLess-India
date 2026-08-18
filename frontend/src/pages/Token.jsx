@@ -39,7 +39,7 @@ function Token() {
     serviceId: service.id,
     serviceName: service.name,
     office: service.office,
-    counter: 3,
+    counter: null,
     peopleAhead,
     estimatedWait,
   };
@@ -118,7 +118,11 @@ function Token() {
               <InfoCard
                 icon={<Ticket />}
                 label="Counter"
-                value={`Counter ${tokenData.counter}`}
+                value={
+                  tokenData.counter
+                    ? `Counter ${tokenData.counter}`
+                    : "Assigned when called"
+                }
               />
 
             </div>

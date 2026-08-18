@@ -1,5 +1,8 @@
 const Token = require("../models/Token");
 const Service = require("../models/Service");
+const {
+  createNotificationRecord,
+} = require("./notificationController");
 
 // ==========================================
 // GET QUEUE STATUS
@@ -91,7 +94,7 @@ const createToken = async (req, res) => {
       service: serviceId,
       citizenName,
       status: "waiting",
-      counter: 3,
+      counter: null,
     });
 
     const populatedToken = await Token.findById(
@@ -119,12 +122,21 @@ const createToken = async (req, res) => {
 
 const callNext = async (req, res) => {
   try {
-    const { serviceId } = req.body;
+    const { serviceId, counter } = req.body;
 
     if (!serviceId) {
       return res.status(400).json({
         success: false,
         message: "Service ID is required",
+      });
+    }
+
+    const officerCounter = Number(counter);
+
+    if (![1, 2, 3].includes(officerCounter)) {
+      return res.status(400).json({
+        success: false,
+        message: "Officer counter must be 1, 2, or 3",
       });
     }
 
@@ -162,8 +174,17 @@ const callNext = async (req, res) => {
     }
 
     nextToken.status = "serving";
+    nextToken.counter = officerCounter;
 
     await nextToken.save();
+
+    await createNotificationRecord({
+      tokenId: nextToken._id,
+      title: "Your turn is ready",
+      message: `Token ${nextToken.tokenNumber} is now being served at counter ${officerCounter}.`,
+      type: "turn_ready",
+      serviceId: serviceId,
+    });
 
     res.json({
       success: true,
@@ -213,6 +234,14 @@ const completeService = async (req, res) => {
 
     await token.save();
 
+    await createNotificationRecord({
+      tokenId: token._id,
+      title: "Service completed",
+      message: `Token ${token.tokenNumber} has been completed successfully.`,
+      type: "service_update",
+      serviceId: serviceId,
+    });
+
     res.json({
       success: true,
       message: "Service completed",
@@ -258,6 +287,14 @@ const skipToken = async (req, res) => {
     token.status = "skipped";
 
     await token.save();
+
+    await createNotificationRecord({
+      tokenId: token._id,
+      title: "Token skipped",
+      message: `Token ${token.tokenNumber} was skipped and moved to the next available service.` ,
+      type: "service_update",
+      serviceId: serviceId,
+    });
 
     res.json({
       success: true,

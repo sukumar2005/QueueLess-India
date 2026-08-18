@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/routes/hospitalRoutes.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787058468183,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787058468183,
+            "name": "Commit-0",
+            "content": "const express = require(\"express\");\n\nconst {\n  getHospitals,\n  getHospitalDoctors,\n  updateDoctorAttendance,\n  createHospitalToken,\n  getHospitalQueueStatus,\n  callNextHospitalToken,\n  completeHospitalToken,\n  skipHospitalToken,\n} = require(\"../controllers/hospitalController\");\nconst {\n  authMiddleware,\n  requireRole,\n  requireHospitalAccess,\n} = require(\"../utils/auth\");\n\nconst router = express.Router();\n\nrouter.get(\"/\", getHospitals);\nrouter.get(\"/:id/doctors\", getHospitalDoctors);\nrouter.post(\n  \"/:id/doctors/:doctorId/attendance\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"HOSPITAL\"),\n  requireHospitalAccess,\n  updateDoctorAttendance\n);\nrouter.post(\n  \"/tokens\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"HOSPITAL\"),\n  requireHospitalAccess,\n  createHospitalToken\n);\nrouter.get(\n  \"/queue/status\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"HOSPITAL\"),\n  requireHospitalAccess,\n  getHospitalQueueStatus\n);\nrouter.post(\n  \"/queue/next\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"HOSPITAL\"),\n  requireHospitalAccess,\n  callNextHospitalToken\n);\nrouter.post(\n  \"/queue/complete\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"HOSPITAL\"),\n  requireHospitalAccess,\n  completeHospitalToken\n);\nrouter.post(\n  \"/queue/skip\",\n  authMiddleware,\n  requireRole(\"ADMIN\", \"HOSPITAL\"),\n  requireHospitalAccess,\n  skipHospitalToken\n);\n\nmodule.exports = router;\n"
+        }
+    ]
+}

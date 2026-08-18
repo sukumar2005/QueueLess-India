@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/controllers/notificationController.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787058897874,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787058897874,
+            "name": "Commit-0",
+            "content": "const Notification = require(\"../models/Notification\");\r\n\r\nconst createNotificationRecord = async ({\r\n  tokenId = null,\r\n  title,\r\n  message,\r\n  type = \"queue_update\",\r\n  serviceId = null,\r\n  hospitalId = null,\r\n  governmentOfficeId = null,\r\n}) => {\r\n  if (!title || !message) {\r\n    return null;\r\n  }\r\n\r\n  const notification = await Notification.create({\r\n    title,\r\n    message,\r\n    type,\r\n    token: tokenId,\r\n    service: serviceId,\r\n    hospital: hospitalId,\r\n    governmentOffice: governmentOfficeId,\r\n  });\r\n\r\n  return notification;\r\n};\r\n\r\nconst getNotifications = async (req, res) => {\r\n  try {\r\n    const { tokenId, type } = req.query;\r\n\r\n    const filter = {};\r\n\r\n    if (tokenId) filter.token = tokenId;\r\n    if (type) filter.type = type;\r\n\r\n    const notifications = await Notification.find(filter)\r\n      .sort({ createdAt: -1 })\r\n      .limit(10);\r\n\r\n    res.json({\r\n      success: true,\r\n      notifications,\r\n    });\r\n  } catch (error) {\r\n    console.error(\"Notification fetch error:\", error);\r\n\r\n    res.status(500).json({\r\n      success: false,\r\n      message: error.message,\r\n    });\r\n  }\r\n};\r\n\r\nconst markNotificationRead = async (req, res) => {\r\n  try {\r\n    const { id } = req.params;\r\n\r\n    const notification = await Notification.findByIdAndUpdate(\r\n      id,\r\n      { read: true },\r\n      { new: true }\r\n    );\r\n\r\n    if (!notification) {\r\n      return res.status(404).json({\r\n        success: false,\r\n        message: \"Notification not found\",\r\n      });\r\n    }\r\n\r\n    res.json({\r\n      success: true,\r\n      notification,\r\n    });\r\n  } catch (error) {\r\n    console.error(\"Notification update error:\", error);\r\n\r\n    res.status(500).json({\r\n      success: false,\r\n      message: error.message,\r\n    });\r\n  }\r\n};\r\n\r\nmodule.exports = {\r\n  createNotificationRecord,\r\n  getNotifications,\r\n  markNotificationRead,\r\n};\r\n"
+        }
+    ]
+}

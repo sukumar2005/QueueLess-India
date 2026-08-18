@@ -17,6 +17,9 @@ const API_URL = "https://queueless-india-a2ju.onrender.com/api";
 function AdminDashboard() {
   const [services, setServices] = useState([]);
   const [queue, setQueue] = useState([]);
+  const [hospitals, setHospitals] = useState([]);
+  const [offices, setOffices] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -25,11 +28,18 @@ function AdminDashboard() {
     try {
       setError("");
 
-      const [servicesResponse, queueResponse] =
+      const [analyticsResponse, servicesResponse, queueResponse, hospitalsResponse, officesResponse] =
         await Promise.all([
+          fetch(`${API_URL}/analytics/summary`),
           fetch(`${API_URL}/services`),
           fetch(`${API_URL}/queue/status`),
+          fetch(`${API_URL}/hospitals`),
+          fetch(`${API_URL}/government-offices`),
         ]);
+
+      if (!analyticsResponse.ok) {
+        throw new Error("Unable to load analytics");
+      }
 
       if (!servicesResponse.ok) {
         throw new Error("Unable to load services");
@@ -39,25 +49,29 @@ function AdminDashboard() {
         throw new Error("Unable to load queue");
       }
 
-      const servicesData =
-        await servicesResponse.json();
+      if (!hospitalsResponse.ok) {
+        throw new Error("Unable to load hospitals");
+      }
 
-      const queueData =
-        await queueResponse.json();
+      if (!officesResponse.ok) {
+        throw new Error("Unable to load government offices");
+      }
 
-      setServices(
-        servicesData.services || []
-      );
+      const analyticsData = await analyticsResponse.json();
+      const servicesData = await servicesResponse.json();
+      const queueData = await queueResponse.json();
+      const hospitalsData = await hospitalsResponse.json();
+      const officesData = await officesResponse.json();
 
-      setQueue(
-        queueData.queue || []
-      );
+      setServices(servicesData.services || []);
+      setQueue(queueData.queue || []);
+      setHospitals(hospitalsData.hospitals || []);
+      setOffices(officesData.offices || []);
+      setNotifications(analyticsData.recentNotifications || []);
     } catch (err) {
       console.error(err);
 
-      setError(
-        "Unable to load administration data."
-      );
+      setError("Unable to load administration data.");
     } finally {
       setLoading(false);
     }
@@ -90,39 +104,36 @@ function AdminDashboard() {
     (token) => token.status === "completed"
   );
 
-  const totalPeopleToday =
-    queue.length;
+  const totalPeopleToday = queue.length;
+  const totalWaiting = waitingTokens.length;
 
-  const totalWaiting =
-    waitingTokens.length;
+  const activeDoctors = hospitals.reduce(
+    (total, hospital) => total + (hospital.availableDoctors || 0),
+    0
+  );
 
-  const activeOfficers =
-    services.reduce(
-      (total, service) =>
-        total +
-        (service.availableOfficers || 0),
-      0
-    );
+  const activeOfficers = offices.reduce(
+    (total, office) => total + (office.availableOfficers || 0),
+    0
+  );
 
   const totalOfficers =
     services.reduce(
-      (total, service) =>
-        total +
-        (service.totalOfficers || 0),
+      (total, service) => total + (service.totalOfficers || 0),
       0
-    );
+    ) + activeOfficers;
 
   const averageWait =
     services.length > 0
       ? Math.round(
           services.reduce(
-            (total, service) =>
-              total +
-              (service.waitingTime || 0),
+            (total, service) => total + (service.waitingTime || 0),
             0
           ) / services.length
         )
       : 0;
+
+  const unreadNotifications = notifications.filter((item) => !item.read).length;
 
   const getServiceCount = (serviceId) => {
     return queue.filter(
@@ -232,9 +243,9 @@ function AdminDashboard() {
 
           <StatCard
             icon={<UserCheck />}
-            title="Active Officers"
-            value={`${activeOfficers}/${totalOfficers}`}
-            description="Available officers"
+            title="Active Staff"
+            value={`${activeDoctors + activeOfficers}/${Math.max(totalOfficers, 1)}`}
+            description="Doctors & officers available"
           />
 
           <StatCard
@@ -245,6 +256,26 @@ function AdminDashboard() {
           />
 
         </div>
+
+        <section className="mt-8 grid gap-4 lg:grid-cols-3">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Healthcare Units</p>
+            <p className="mt-3 text-3xl font-black text-slate-900">{hospitals.length}</p>
+            <p className="mt-1 text-sm text-slate-500">Hospitals monitored</p>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Government Offices</p>
+            <p className="mt-3 text-3xl font-black text-slate-900">{offices.length}</p>
+            <p className="mt-1 text-sm text-slate-500">Office counters active</p>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Notifications</p>
+            <p className="mt-3 text-3xl font-black text-slate-900">{unreadNotifications}</p>
+            <p className="mt-1 text-sm text-slate-500">Unread status updates</p>
+          </div>
+        </section>
 
         {/* SYSTEM STATUS */}
 

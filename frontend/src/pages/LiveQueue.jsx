@@ -25,68 +25,114 @@ function LiveQueue() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadQueue = async () => {
+ const loadQueue = async () => {
   try {
     setError("");
 
-    // Get the citizen's token first
+    // 1. Get the citizen's saved token
     const savedToken = localStorage.getItem(
       "queueless_user_token"
     );
 
-    let parsedToken = null;
-
-    if (savedToken) {
-      parsedToken = JSON.parse(savedToken);
-      setUserToken(parsedToken);
+    if (!savedToken) {
+      throw new Error("No digital token found.");
     }
 
-    // Get the service ID from the user's token
-    const serviceId = parsedToken?.service?._id;
+    const parsedToken = JSON.parse(savedToken);
 
-    // Load only this service's queue
-    const queueUrl = serviceId
-      ? `${API_URL}/queue/status?serviceId=${serviceId}`
-      : `${API_URL}/queue/status`;
+    // 2. Initially display the saved token
+    setUserToken(parsedToken);
 
-    const response = await fetch(queueUrl);
+    // 3. Get service ID
+    const serviceId =
+      parsedToken?.service?._id ||
+      parsedToken?.service?.id ||
+      parsedToken?.service;
+
+    if (!serviceId) {
+      throw new Error("Service ID not found.");
+    }
+
+    // 4. Get LIVE queue from backend
+    const response = await fetch(
+      `${API_URL}/queue/status?serviceId=${serviceId}`
+    );
 
     if (!response.ok) {
-      throw new Error("Unable to load queue");
+      throw new Error("Unable to load live queue.");
     }
 
     const data = await response.json();
 
-    setQueue(data.queue || []);
-    setCurrentToken(data.currentToken || null);
+    console.log("LIVE QUEUE DATA:", data);
 
-    if (parsedToken) {
-      const waitingTokens = (data.queue || []).filter(
-        (token) => token.status === "waiting"
-      );
+    const latestQueue = data.queue || [];
+    const latestCurrentToken = data.currentToken || null;
 
-      const userIndex = waitingTokens.findIndex(
+    // 5. Update live queue
+    setQueue(latestQueue);
+
+    // 6. Update currently serving token
+    setCurrentToken(latestCurrentToken);
+
+    // 7. Find YOUR latest token
+    const latestUserToken =
+      latestQueue.find(
         (token) => token._id === parsedToken._id
-      );
+      ) ||
+      (latestCurrentToken?._id === parsedToken._id
+        ? latestCurrentToken
+        : null);
 
-      if (userIndex >= 0) {
-        setPeopleAhead(userIndex);
-      } else {
-        setPeopleAhead(0);
-      }
+    if (latestUserToken) {
+      // Update screen
+      setUserToken(latestUserToken);
+
+      // Save latest status
+      localStorage.setItem(
+        "queueless_user_token",
+        JSON.stringify(latestUserToken)
+      );
+    }
+
+    // 8. If YOU are currently being served
+    if (
+      latestCurrentToken?._id === parsedToken._id
+    ) {
+      setPeopleAhead(0);
+      setEstimatedWait(0);
+      return;
+    }
+
+    // 9. Calculate people ahead
+    const waitingTokens = latestQueue.filter(
+      (token) => token.status === "waiting"
+    );
+
+    const userIndex = waitingTokens.findIndex(
+      (token) => token._id === parsedToken._id
+    );
+
+    if (userIndex >= 0) {
+      setPeopleAhead(userIndex);
 
       const averageTime =
         parsedToken.service?.averageTime || 15;
 
       setEstimatedWait(
-        userIndex > 0
-          ? userIndex * averageTime
-          : 0
+        userIndex * averageTime
       );
+    } else {
+      setPeopleAhead(0);
+      setEstimatedWait(0);
     }
+
   } catch (err) {
-    console.error(err);
-    setError("Unable to connect to the live queue.");
+    console.error("Live queue error:", err);
+
+    setError(
+      err.message || "Unable to connect to live queue."
+    );
   } finally {
     setLoading(false);
   }
@@ -180,8 +226,7 @@ function LiveQueue() {
     userToken?.tokenNumber || "Not Found";
 
   const isYourTurn =
-    userToken?.status === "serving" ||
-    peopleAhead === 0;
+  currentToken?._id === userToken?._id;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -406,7 +451,7 @@ function LiveQueue() {
                   value={
                     userToken?.counter
                       ? `Counter ${userToken.counter}`
-                      : "Assigned"
+                      : "Not assigned yet"
                   }
                 />
 

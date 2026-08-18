@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/controllers/analyticsController.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787059080329,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787059080329,
+            "name": "Commit-0",
+            "content": "const Service = require(\"../models/Service\");\r\nconst Hospital = require(\"../models/Hospital\");\r\nconst GovernmentOffice = require(\"../models/GovernmentOffice\");\r\nconst Doctor = require(\"../models/Doctor\");\r\nconst Officer = require(\"../models/Officer\");\r\nconst Token = require(\"../models/Token\");\r\nconst Notification = require(\"../models/Notification\");\r\n\r\nconst getAnalyticsSummary = async (req, res) => {\r\n  try {\r\n    const [services, hospitals, offices, doctors, officers, tokens, notifications] =\r\n      await Promise.all([\r\n        Service.find(),\r\n        Hospital.find(),\r\n        GovernmentOffice.find(),\r\n        Doctor.find(),\r\n        Officer.find(),\r\n        Token.find({ status: { $in: [\"waiting\", \"serving\", \"completed\"] } }).populate(\"service\"),\r\n        Notification.find().sort({ createdAt: -1 }).limit(50),\r\n      ]);\r\n\r\n    const totalServices = services.length;\r\n    const totalHospitals = hospitals.length;\r\n    const totalOffices = offices.length;\r\n\r\n    const activeDoctors = doctors.filter((d) => d.attendanceStatus === \"Present\").length;\r\n    const activeOfficers = officers.filter((o) => o.attendanceStatus === \"Present\").length;\r\n\r\n    const totalWaitingTokens = tokens.filter((t) => t.status === \"waiting\").length;\r\n    const totalServingTokens = tokens.filter((t) => t.status === \"serving\").length;\r\n    const totalCompletedTokens = tokens.filter((t) => t.status === \"completed\").length;\r\n\r\n    const unreadNotifications = notifications.filter((n) => !n.read).length;\r\n\r\n    const serviceQueueData = {};\r\n\r\n    services.forEach((service) => {\r\n      const serviceTokens = tokens.filter((t) => t.service?._id?.toString() === service._id.toString());\r\n      serviceQueueData[service._id] = {\r\n        name: service.name,\r\n        department: service.department,\r\n        waiting: serviceTokens.filter((t) => t.status === \"waiting\").length,\r\n        serving: serviceTokens.filter((t) => t.status === \"serving\").length,\r\n        completed: serviceTokens.filter((t) => t.status === \"completed\").length,\r\n      };\r\n    });\r\n\r\n    res.json({\r\n      success: true,\r\n      summary: {\r\n        totalServices,\r\n        totalHospitals,\r\n        totalOffices,\r\n        activeDoctors,\r\n        activeOfficers,\r\n        totalDoctors: doctors.length,\r\n        totalOfficers: officers.length,\r\n        totalWaitingTokens,\r\n        totalServingTokens,\r\n        totalCompletedTokens,\r\n        unreadNotifications,\r\n      },\r\n      serviceQueueData,\r\n      recentNotifications: notifications.slice(0, 10),\r\n    });\r\n  } catch (error) {\r\n    console.error(\"Analytics summary error:\", error);\r\n\r\n    res.status(500).json({\r\n      success: false,\r\n      message: error.message,\r\n    });\r\n  }\r\n};\r\n\r\nmodule.exports = {\r\n  getAnalyticsSummary,\r\n};\r\n"
+        }
+    ]
+}

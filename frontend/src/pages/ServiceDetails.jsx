@@ -147,351 +147,348 @@ function ServiceDetails() {
   // ==========================================
 
   const prediction = predictQueue({
-    peopleWaiting:
-      queueData?.peopleWaiting ??
-      service.peopleWaiting ??
-      0,
+  peopleWaiting: queueData?.peopleWaiting ?? 0,
 
-    averageServiceTime:
-      service.averageTime || 15,
+  averageServiceTime:
+    service.averageTime || 15,
 
-    availableOfficers:
-      service.availableOfficers || 1,
+  availableOfficers:
+    service.availableOfficers || 1,
 
-    totalOfficers:
-      service.totalOfficers || 1,
-  });
+  totalOfficers:
+    service.totalOfficers || 1,
+});
 
   // ==========================================
   // PAGE
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-slate-50">
+  <div className="min-h-screen bg-slate-50">
 
-      <div className="mx-auto max-w-7xl px-6 py-10">
+    <div className="mx-auto max-w-7xl px-6 py-10">
 
-        {/* BACK */}
+      {/* BACK */}
+      <Link
+        to="/services"
+        className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-700"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Services
+      </Link>
 
-        <Link
-          to="/services"
-          className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-700"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Services
-        </Link>
+      {/* HEADER */}
+      <div className="mt-8 rounded-3xl bg-blue-700 p-8 text-white md:p-10">
 
-        {/* HEADER */}
+        <div className="flex flex-col justify-between gap-6 md:flex-row">
 
-        <div className="mt-8 rounded-3xl bg-blue-700 p-8 text-white md:p-10">
+          <div>
+            <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+              Government Service
+            </span>
 
-          <div className="flex flex-col justify-between gap-6 md:flex-row">
+            <h1 className="mt-5 text-4xl font-bold">
+              {service.name}
+            </h1>
 
-            <div>
+            <p className="mt-3 max-w-2xl leading-7 text-blue-100">
+              Apply for and access this government service
+              through QueueLess India.
+            </p>
+          </div>
 
-              <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-                Government Service
-              </span>
+          <div
+            className={`flex h-fit items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white ${
+              service.available
+                ? "bg-green-500"
+                : "bg-red-500"
+            }`}
+          >
+            <span className="h-2 w-2 rounded-full bg-white" />
 
-              <h1 className="mt-5 text-4xl font-bold">
-                {service.name}
-              </h1>
-
-              <p className="mt-3 max-w-2xl leading-7 text-blue-100">
-                Apply for and access this government service
-                through QueueLess India.
-              </p>
-
-            </div>
-
-            <div
-              className={`flex h-fit items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white ${
-                service.available
-                  ? "bg-green-500"
-                  : "bg-red-500"
-              }`}
-            >
-
-              <span className="h-2 w-2 rounded-full bg-white" />
-
-              {service.available ? "Open" : "Closed"}
-
-            </div>
-
+            {service.available ? "Open" : "Closed"}
           </div>
 
         </div>
+      </div>
 
-        {/* INFORMATION */}
+      {/* INFORMATION */}
+      <div className="mt-8 grid gap-6 lg:grid-cols-3">
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+        {/* LEFT SIDE */}
+        <div className="space-y-6 lg:col-span-2">
 
-          {/* LEFT SIDE */}
+          {/* DOCUMENTS */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-7">
 
-          <div className="space-y-6 lg:col-span-2">
+            <div className="flex items-center gap-3">
 
-            {/* DOCUMENTS */}
-
-            <section className="rounded-2xl border border-slate-200 bg-white p-7">
-
-              <div className="flex items-center gap-3">
-
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
-
-                  <FileText className="h-5 w-5" />
-
-                </div>
-
-                <div>
-
-                  <h2 className="text-xl font-bold">
-                    Documents Required
-                  </h2>
-
-                  <p className="text-sm text-slate-500">
-                    Keep these documents ready before visiting.
-                  </p>
-
-                </div>
-
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                <FileText className="h-5 w-5" />
               </div>
 
-              <div className="mt-6 space-y-3">
+              <div>
+                <h2 className="text-xl font-bold">
+                  Documents Required
+                </h2>
 
-                {service.documents?.map((document) => (
-
-                  <div
-                    key={document}
-                    className="flex items-center gap-3 rounded-xl bg-slate-50 p-4"
-                  >
-
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-
-                    <span className="font-medium text-slate-700">
-                      {document}
-                    </span>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-            </section>
-
-            {/* OFFICE */}
-
-            <section className="rounded-2xl border border-slate-200 bg-white p-7">
-
-              <div className="flex items-center gap-3">
-
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
-
-                  <MapPin className="h-5 w-5" />
-
-                </div>
-
-                <div>
-
-                  <h2 className="text-xl font-bold">
-                    Office Information
-                  </h2>
-
-                  <p className="text-sm text-slate-500">
-                    Where you need to visit.
-                  </p>
-
-                </div>
-
-              </div>
-
-              <div className="mt-6 rounded-2xl bg-slate-50 p-5">
-
-                <h3 className="font-bold">
-                  {service.office}
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  {service.department}
+                <p className="text-sm text-slate-500">
+                  Keep these documents ready before visiting.
                 </p>
-
-                <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate-600">
-
-                  <span>
-                    🕘 9:00 AM – 5:00 PM
-                  </span>
-
-                  <span>
-                    📍 Coimbatore
-                  </span>
-
-                  <span>
-                    📅 Monday – Friday
-                  </span>
-
-                </div>
-
               </div>
 
-            </section>
+            </div>
 
-          </div>
+            <div className="mt-6 space-y-3">
 
-          {/* RIGHT SIDE */}
+              {service.documents?.map((document) => (
 
-          <div>
+                <div
+                  key={document}
+                  className="flex items-center gap-3 rounded-xl bg-slate-50 p-4"
+                >
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
 
-            <div className="sticky top-24 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+                  <span className="font-medium text-slate-700">
+                    {document}
+                  </span>
+                </div>
 
-              {/* QUEUE HEADER */}
+              ))}
 
-              <h2 className="text-xl font-bold">
-                Live Queue
-              </h2>
+            </div>
+
+          </section>
+
+          {/* OFFICE */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-7">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                <MapPin className="h-5 w-5" />
+              </div>
+
+              <div>
+                <h2 className="text-xl font-bold">
+                  Office Information
+                </h2>
+
+                <p className="text-sm text-slate-500">
+                  Where you need to visit.
+                </p>
+              </div>
+
+            </div>
+
+            <div className="mt-6 rounded-2xl bg-slate-50 p-5">
+
+              <h3 className="font-bold">
+                {service.office}
+              </h3>
 
               <p className="mt-1 text-sm text-slate-500">
-                Current service information
+                {service.department}
               </p>
 
-              {/* QUEUE INFORMATION */}
+              <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate-600">
 
-              <div className="mt-6 space-y-4">
+                <span>
+                  🕘 9:00 AM – 5:00 PM
+                </span>
 
-                <InfoRow
-                  icon={<Users />}
-                  label="People Waiting"
-                  value={
-                    queueData?.peopleWaiting ??
-                    service.peopleWaiting ??
-                    0
-                  }
-                />
+                <span>
+                  📍 Coimbatore
+                </span>
 
-                <InfoRow
-                  icon={<Users />}
-                  label="Queue Status"
-                  value={
-                    service.available
-                      ? "Open"
-                      : "Closed"
-                  }
-                />
-
-                <InfoRow
-                  icon={<Clock3 />}
-                  label="Average Service"
-                  value={`${service.averageTime || 15} min`}
-                />
-
-                <InfoRow
-                  icon={<UserCheck />}
-                  label="Department"
-                  value={service.department}
-                />
+                <span>
+                  📅 Monday – Friday
+                </span>
 
               </div>
 
-              {/* ==================================
-                  AI QUEUE PREDICTION
-                  ================================== */}
+            </div>
 
-              <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-5">
+          </section>
 
-                <div className="flex items-center gap-2">
+        </div>
 
-                  <span className="text-xl">
-                    🤖
-                  </span>
+        {/* RIGHT SIDE */}
+        <div>
 
-                  <p className="text-sm font-bold uppercase tracking-wider text-green-800">
-                    AI Queue Prediction
+          <div className="sticky top-24 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+
+            {/* QUEUE HEADER */}
+            <h2 className="text-xl font-bold">
+              Live Queue
+            </h2>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Current service information
+            </p>
+
+            {/* QUEUE INFORMATION */}
+            <div className="mt-6 space-y-4">
+
+              <InfoRow
+                icon={<Users />}
+                label="People Waiting"
+                value={
+                  queueData?.peopleWaiting ??
+                  service.peopleWaiting ??
+                  0
+                }
+              />
+
+              <InfoRow
+                icon={<Users />}
+                label="Queue Status"
+                value={
+                  service.available
+                    ? "Open"
+                    : "Closed"
+                }
+              />
+
+              <InfoRow
+                icon={<Clock3 />}
+                label="Average Service"
+                value={`${service.averageTime || 15} min`}
+              />
+
+              <InfoRow
+                icon={<UserCheck />}
+                label="Department"
+                value={service.department}
+              />
+
+            </div>
+
+            {/* AI QUEUE PREDICTION */}
+            <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-5">
+
+              <div className="flex items-center gap-2">
+
+                <span className="text-xl">
+                  🤖
+                </span>
+
+                <p className="text-sm font-bold uppercase tracking-wider text-green-800">
+                  AI Queue Prediction
+                </p>
+
+              </div>
+
+              <p className="mt-3 text-sm font-semibold text-green-800">
+                Recommended Visit Time
+              </p>
+
+              <p className="mt-1 text-3xl font-black text-green-950">
+                {prediction.recommendedTime}
+              </p>
+
+              <p className="mt-1 text-sm text-green-700">
+                Lower predicted queue during this period.
+              </p>
+
+              {/* AI METRICS */}
+              <div className="mt-5 grid grid-cols-2 gap-3">
+
+                {/* PREDICTED WAIT */}
+                <div className="rounded-xl bg-white p-4">
+
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Predicted Wait
+                  </p>
+
+                  <p className="mt-1 text-xl font-black text-slate-900">
+                    {prediction.predictedWait} min
                   </p>
 
                 </div>
 
-                <p className="mt-3 text-sm font-semibold text-green-800">
-                  Recommended Visit Time
-                </p>
+                {/* DEMAND */}
+                <div className="rounded-xl bg-white p-4">
 
-                <p className="mt-1 text-3xl font-black text-green-950">
-                  {prediction.recommendedTime}
-                </p>
-
-                <p className="mt-1 text-sm text-green-700">
-                  Lower predicted queue during this period.
-                </p>
-
-                {/* AI METRICS */}
-
-                <div className="mt-5 grid grid-cols-2 gap-3">
-
-                  <div className="rounded-xl bg-white p-4">
-
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Predicted Wait
-                    </p>
-
-                    <p className="mt-1 text-xl font-black text-slate-900">
-                      {prediction.predictedWait} min
-                    </p>
-
-                  </div>
-
-                  <div className="rounded-xl bg-white p-4">
-
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Demand
-                    </p>
-
-                    <p className="mt-1 text-xl font-black text-slate-900">
-                      {prediction.demandLevel}
-                    </p>
-
-                  </div>
-
-                </div>
-
-                {/* PEAK PERIOD */}
-
-                <div className="mt-4 rounded-xl bg-amber-50 p-4">
-
-                  <p className="font-bold text-amber-900">
-                    ⚠️ Peak Demand
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Demand
                   </p>
 
-                  <p className="mt-1 text-sm text-amber-700">
-                    {prediction.peakPeriod}
+                  <p className="mt-1 text-xl font-black text-slate-900">
+                    {prediction.demandLevel}
                   </p>
 
                 </div>
 
-                {/* AI RECOMMENDATION */}
+                {/* CROWD LEVEL */}
+                <div className="rounded-xl bg-white p-4">
 
-                <p className="mt-4 text-sm leading-6 text-green-800">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Crowd Level
+                  </p>
+
+                  <p className="mt-1 text-xl font-black text-slate-900">
+                    {prediction.crowdStatus || prediction.demandLevel}
+                  </p>
+
+                </div>
+
+                {/* OFFICER CAPACITY */}
+                <div className="rounded-xl bg-white p-4">
+
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Officer Capacity
+                  </p>
+
+                  <p className="mt-1 text-sm font-bold text-slate-900">
+                    {prediction.officerAvailability || "Available"}
+                  </p>
+
+                </div>
+
+              </div>
+
+              {/* PEAK PERIOD */}
+              <div className="mt-4 rounded-xl bg-amber-50 p-4">
+
+                <p className="font-bold text-amber-900">
+                  ⚠️ Peak Demand
+                </p>
+
+                <p className="mt-1 text-sm text-amber-700">
+                  {prediction.peakPeriod}
+                </p>
+
+              </div>
+
+              {/* AI RECOMMENDATION */}
+              <div className="mt-3 rounded-xl bg-white p-4">
+
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Recommendation
+                </p>
+
+                <p className="mt-1 text-sm font-bold text-slate-900">
                   {prediction.recommendation}
                 </p>
 
               </div>
-              
-
-              {/* TOKEN */}
-
-             {/* TOKEN */}
-
-<Link
-  to={`/token/${serviceId}`}
-  state={{
-    service,
-    serviceId,
-  }}
-  className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-blue-700 py-3.5 font-semibold text-white hover:bg-blue-800"
->
-  Get Digital Token
-
-  <ArrowRight className="h-4 w-4" />
-</Link>
 
             </div>
+
+            {/* TOKEN */}
+            <Link
+              to={`/token/${serviceId}`}
+              state={{
+                service,
+                serviceId,
+              }}
+              className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-blue-700 py-3.5 font-semibold text-white hover:bg-blue-800"
+            >
+              Get Digital Token
+
+              <ArrowRight className="h-4 w-4" />
+            </Link>
 
           </div>
 
@@ -500,33 +497,26 @@ function ServiceDetails() {
       </div>
 
     </div>
-  );
+
+  </div>
+);
 }
-
-// ==========================================
-// INFO ROW COMPONENT
-// ==========================================
-
 function InfoRow({ icon, label, value }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl bg-slate-50 p-4">
-
+    <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4">
       <div className="flex items-center gap-3">
-
-        <div className="text-blue-700">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
           {icon}
         </div>
 
-        <span className="text-sm text-slate-600">
+        <span className="text-sm font-medium text-slate-600">
           {label}
         </span>
-
       </div>
 
-      <span className="max-w-[150px] truncate text-right text-sm font-bold">
+      <span className="max-w-37.5 text-right text-sm font-bold text-slate-900">
         {value}
       </span>
-
     </div>
   );
 }

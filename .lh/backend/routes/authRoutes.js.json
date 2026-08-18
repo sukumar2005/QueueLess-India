@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/routes/authRoutes.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787058109588,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787058109588,
+            "name": "Commit-0",
+            "content": "const express = require(\"express\");\r\nconst { login, createStaffAccount } = require(\"../controllers/authController\");\r\nconst { authMiddleware, requireRole } = require(\"../utils/auth\");\r\n\r\nconst router = express.Router();\r\n\r\nrouter.post(\"/login\", login);\r\nrouter.post(\"/staff\", authMiddleware, requireRole(\"ADMIN\"), createStaffAccount);\r\n\r\nmodule.exports = router;\r\n"
+        }
+    ]
+}
