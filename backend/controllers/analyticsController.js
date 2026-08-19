@@ -163,49 +163,76 @@ const getAnalyticsSummary = async (req, res) => {
           )
         : 0;
 
-    // =====================================================
-    // AVERAGE SERVICE TIME
-    // =====================================================
+   // =====================================================
+// AVERAGE ACTUAL SERVICE TIME
+// =====================================================
 
-    const completedWithTime =
-      tokens.filter(
-        (token) =>
-          token.status === "completed" &&
-          token.createdAt &&
-          token.servedAt
-      );
+const completedWithTime = tokens.filter(
+  (token) =>
+    token.status === "completed" &&
+    token.startedAt &&
+    token.servedAt
+);
 
-    let averageServiceTime = 0;
+let averageServiceTime = 0;
 
-    if (completedWithTime.length > 0) {
-      const totalServiceTime =
-        completedWithTime.reduce(
-          (total, token) => {
-            const start =
-              new Date(
-                token.createdAt
-              ).getTime();
+if (completedWithTime.length > 0) {
+  const totalServiceTime = completedWithTime.reduce(
+    (total, token) => {
+      const start = new Date(
+        token.startedAt
+      ).getTime();
 
-            const end =
-              new Date(
-                token.servedAt
-              ).getTime();
+      const end = new Date(
+        token.servedAt
+      ).getTime();
 
-            return (
-              total +
-              (end - start)
-            );
-          },
-          0
-        );
+      return total + (end - start);
+    },
+    0
+  );
 
-      averageServiceTime = Math.round(
-        totalServiceTime /
-          completedWithTime.length /
-          60000
-      );
-    }
+  averageServiceTime = Math.round(
+    totalServiceTime /
+      completedWithTime.length /
+      60000
+  );
+}
+// =====================================================
+// AVERAGE WAITING TIME
+// =====================================================
 
+const tokensWithWaitingTime = tokens.filter(
+  (token) =>
+    token.createdAt &&
+    token.startedAt
+);
+
+let averageWaitingTime = 0;
+
+if (tokensWithWaitingTime.length > 0) {
+  const totalWaitingTime =
+    tokensWithWaitingTime.reduce(
+      (total, token) => {
+        const created = new Date(
+          token.createdAt
+        ).getTime();
+
+        const started = new Date(
+          token.startedAt
+        ).getTime();
+
+        return total + (started - created);
+      },
+      0
+    );
+
+  averageWaitingTime = Math.round(
+    totalWaitingTime /
+      tokensWithWaitingTime.length /
+      60000
+  );
+}
     // =====================================================
     // NOTIFICATIONS
     // =====================================================
@@ -376,9 +403,12 @@ const getAnalyticsSummary = async (req, res) => {
         todayCompletedTokens,
 
         completionRate,
-        averageServiceTime,
 
-        unreadNotifications,
+averageServiceTime,
+
+averageWaitingTime,
+
+unreadNotifications,
       },
 
       serviceQueueData,

@@ -67,9 +67,20 @@ function AppShell({ session, setSession, logout }) {
   const [notifications, setNotifications] = useState([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  const hasUserAccess = role === "USER" || !role;
-  const hasHospitalAccess = role === "HOSPITAL" || role === "ADMIN";
-  const hasOfficeAccess = role === "GOVERNMENT OFFICE" || role === "ADMIN";
+const normalizedRole = role?.trim().toUpperCase();
+
+const hasUserAccess =
+  normalizedRole === "USER" ||
+  normalizedRole === "ADMIN" ||
+  !normalizedRole;
+
+const hasHospitalAccess =
+  normalizedRole === "HOSPITAL" ||
+  normalizedRole === "ADMIN";
+
+const hasOfficeAccess =
+  normalizedRole === "GOVERNMENT OFFICE" ||
+  normalizedRole === "ADMIN";
 
   useEffect(() => {
     const loadNotifications = async () => {
@@ -199,7 +210,7 @@ function AppShell({ session, setSession, logout }) {
       </header>
 
       <Routes>
-        <Route path="/" element={<Home />} />
+       <Route path="/" element={<Home session={session} />} />
         <Route path="/login" element={<LoginPage setSession={setSession} session={session} />} />
 
         <Route path="/services" element={<Services />} />
@@ -316,7 +327,8 @@ function LoginPage({ setSession, session }) {
   );
 }
 
-function Home() {
+function Home({ session }) {
+    const normalizedRole = session?.role?.trim().toUpperCase();
   const sections = [
     {
       title: "HOSPITALS",
@@ -347,6 +359,162 @@ function Home() {
       icon: <Bot className="h-6 w-6" />,
     },
   ];
+    // ==========================================
+  // HOSPITAL LOGIN
+  // ==========================================
+  if (normalizedRole === "HOSPITAL") {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <section className="mx-auto max-w-7xl px-6 py-12">
+
+          <div className="rounded-3xl bg-blue-700 p-8 text-white">
+            <p className="text-sm font-semibold uppercase tracking-wider">
+              Hospital Staff Portal
+            </p>
+
+            <h1 className="mt-2 text-3xl font-black">
+              Hospital Operations
+            </h1>
+
+            <p className="mt-2 text-blue-100">
+              Manage patients, doctors, attendance and queues.
+            </p>
+          </div>
+
+          <div className="mt-8">
+            <Link
+              to="/hospital-dashboard"
+              className="block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-300"
+            >
+              <h2 className="text-xl font-black text-slate-900">
+                Hospital Dashboard
+              </h2>
+
+              <p className="mt-2 text-slate-600">
+                Manage online and offline tokens, counters,
+                doctors and queue operations.
+              </p>
+            </Link>
+          </div>
+
+        </section>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // GOVERNMENT OFFICE LOGIN
+  // ==========================================
+  if (normalizedRole === "GOVERNMENT OFFICE") {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <section className="mx-auto max-w-7xl px-6 py-12">
+
+          <div className="rounded-3xl bg-blue-700 p-8 text-white">
+            <p className="text-sm font-semibold uppercase tracking-wider">
+              Government Office Portal
+            </p>
+
+            <h1 className="mt-2 text-3xl font-black">
+              Office Operations
+            </h1>
+
+            <p className="mt-2 text-blue-100">
+              Manage citizens, officers, attendance and queues.
+            </p>
+          </div>
+
+          <div className="mt-8">
+            <Link
+              to="/office-dashboard"
+              className="block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-300"
+            >
+              <h2 className="text-xl font-black text-slate-900">
+                Government Office Dashboard
+              </h2>
+
+              <p className="mt-2 text-slate-600">
+                Manage online and offline tokens, officers,
+                counters and queue operations.
+              </p>
+            </Link>
+          </div>
+
+        </section>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // ADMIN LOGIN
+  // ==========================================
+  if (normalizedRole === "ADMIN") {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <section className="mx-auto max-w-7xl px-6 py-12">
+
+          <div className="rounded-3xl bg-slate-900 p-8 text-white">
+            <p className="text-sm font-semibold uppercase tracking-wider">
+              Administrator Portal
+            </p>
+
+            <h1 className="mt-2 text-3xl font-black">
+              QueueLess India Administration
+            </h1>
+
+            <p className="mt-2 text-slate-300">
+              Manage hospitals, government offices, users,
+              services and system operations.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
+
+            <Link
+              to="/admin"
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-300"
+            >
+              <h2 className="text-xl font-black text-slate-900">
+                Admin Dashboard
+              </h2>
+
+              <p className="mt-2 text-slate-600">
+                Monitor the complete QueueLess India system.
+              </p>
+            </Link>
+
+            <Link
+              to="/hospital-dashboard"
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-300"
+            >
+              <h2 className="text-xl font-black text-slate-900">
+                Hospital Operations
+              </h2>
+
+              <p className="mt-2 text-slate-600">
+                Manage hospital queue operations.
+              </p>
+            </Link>
+
+            <Link
+              to="/office-dashboard"
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-300"
+            >
+              <h2 className="text-xl font-black text-slate-900">
+                Government Office Operations
+              </h2>
+
+              <p className="mt-2 text-slate-600">
+                Manage government office queues.
+              </p>
+            </Link>
+
+          </div>
+
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">

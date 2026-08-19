@@ -78,13 +78,19 @@ const tokenSchema = new mongoose.Schema(
     },
 
     createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+  type: Date,
+  default: Date.now,
+},
 
-    servedAt: {
-      type: Date,
-    },
+startedAt: {
+  type: Date,
+  default: null,
+},
+
+servedAt: {
+  type: Date,
+  default: null,
+},
   },
   {
     timestamps: true,

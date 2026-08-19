@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 3,
+            "activePatchIndex": 6,
             "patches": [
                 {
                     "date": 1787059080329,
@@ -20,6 +20,18 @@
                 {
                     "date": 1787064498262,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -102,9 +102,9 @@\n     // =====================================================\r\n \r\n     const onlineTokens = tokens.filter(\r\n       (token) =>\r\n-        token.servedAt === \"online\"\r\n+        token.source === \"online\"\r\n     ).length;\r\n \r\n     const offlineTokens = tokens.filter(\r\n       (token) =>\r\n"
+                },
+                {
+                    "date": 1787138558739,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -162,50 +162,43 @@\n             ).toFixed(2)\r\n           )\r\n         : 0;\r\n \r\n-    // =====================================================\r\n-    // AVERAGE SERVICE TIME\r\n-    // =====================================================\r\n+   // =====================================================\r\n+// AVERAGE ACTUAL SERVICE TIME\r\n+// =====================================================\r\n \r\n-    const completedWithTime =\r\n-      tokens.filter(\r\n-        (token) =>\r\n-          token.status === \"completed\" &&\r\n-          token.createdAt &&\r\n-          token.servedAt\r\n-      );\r\n+const completedWithTime = tokens.filter(\r\n+  (token) =>\r\n+    token.status === \"completed\" &&\r\n+    token.startedAt &&\r\n+    token.servedAt\r\n+);\r\n \r\n-    let averageServiceTime = 0;\r\n+let averageServiceTime = 0;\r\n \r\n-    if (completedWithTime.length > 0) {\r\n-      const totalServiceTime =\r\n-        completedWithTime.reduce(\r\n-          (total, token) => {\r\n-            const start =\r\n-              new Date(\r\n-                token.createdAt\r\n-              ).getTime();\r\n+if (completedWithTime.length > 0) {\r\n+  const totalServiceTime = completedWithTime.reduce(\r\n+    (total, token) => {\r\n+      const start = new Date(\r\n+        token.startedAt\r\n+      ).getTime();\r\n \r\n-            const end =\r\n-              new Date(\r\n-                token.servedAt\r\n-              ).getTime();\r\n+      const end = new Date(\r\n+        token.servedAt\r\n+      ).getTime();\r\n \r\n-            return (\r\n-              total +\r\n-              (end - start)\r\n-            );\r\n-          },\r\n-          0\r\n-        );\r\n+      return total + (end - start);\r\n+    },\r\n+    0\r\n+  );\r\n \r\n-      averageServiceTime = Math.round(\r\n-        totalServiceTime /\r\n-          completedWithTime.length /\r\n-          60000\r\n-      );\r\n-    }\r\n+  averageServiceTime = Math.round(\r\n+    totalServiceTime /\r\n+      completedWithTime.length /\r\n+      60000\r\n+  );\r\n+}\r\n \r\n     // =====================================================\r\n     // NOTIFICATIONS\r\n     // =====================================================\r\n"
+                },
+                {
+                    "date": 1787138627319,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -197,9 +197,43 @@\n       completedWithTime.length /\r\n       60000\r\n   );\r\n }\r\n+// =====================================================\r\n+// AVERAGE WAITING TIME\r\n+// =====================================================\r\n \r\n+const tokensWithWaitingTime = tokens.filter(\r\n+  (token) =>\r\n+    token.createdAt &&\r\n+    token.startedAt\r\n+);\r\n+\r\n+let averageWaitingTime = 0;\r\n+\r\n+if (tokensWithWaitingTime.length > 0) {\r\n+  const totalWaitingTime =\r\n+    tokensWithWaitingTime.reduce(\r\n+      (total, token) => {\r\n+        const created = new Date(\r\n+          token.createdAt\r\n+        ).getTime();\r\n+\r\n+        const started = new Date(\r\n+          token.startedAt\r\n+        ).getTime();\r\n+\r\n+        return total + (started - created);\r\n+      },\r\n+      0\r\n+    );\r\n+\r\n+  averageWaitingTime = Math.round(\r\n+    totalWaitingTime /\r\n+      tokensWithWaitingTime.length /\r\n+      60000\r\n+  );\r\n+}\r\n     // =====================================================\r\n     // NOTIFICATIONS\r\n     // =====================================================\r\n \r\n"
+                },
+                {
+                    "date": 1787138674986,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -402,11 +402,14 @@\n         todayTokenCount,\r\n         todayCompletedTokens,\r\n \r\n         completionRate,\r\n-        averageServiceTime,\r\n \r\n-        unreadNotifications,\r\n+averageServiceTime,\r\n+\r\n+averageWaitingTime,\r\n+\r\n+unreadNotifications,\r\n       },\r\n \r\n       serviceQueueData,\r\n \r\n"
                 }
             ],
             "date": 1787059080329,

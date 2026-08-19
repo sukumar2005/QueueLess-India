@@ -174,7 +174,8 @@ const callNext = async (req, res) => {
     }
 
     nextToken.status = "serving";
-    nextToken.counter = officerCounter;
+nextToken.counter = officerCounter;
+nextToken.startedAt = new Date();
 
     await nextToken.save();
 
