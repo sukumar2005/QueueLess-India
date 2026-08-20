@@ -3,64 +3,46 @@ const express = require("express");
 const {
   getHospitals,
   getHospitalDoctors,
-  updateDoctorAttendance,
   createHospitalToken,
-  getHospitalQueueStatus,
-  callNextHospitalToken,
-  completeHospitalToken,
-  skipHospitalToken,
 } = require("../controllers/hospitalController");
-const {
-  authMiddleware,
-  requireRole,
-  requireHospitalAccess,
-} = require("../utils/auth");
 
 const router = express.Router();
 
+// ======================================================
+// GET ALL HOSPITALS
+// GET /api/v1/hospitals
+// ======================================================
+
 router.get("/", getHospitals);
-router.get("/:id/doctors", getHospitalDoctors);
-router.post(
-  "/:id/doctors/:doctorId/attendance",
-  authMiddleware,
-  requireRole("ADMIN", "HOSPITAL"),
-  requireHospitalAccess,
-  updateDoctorAttendance
+
+// ======================================================
+// GET DOCTORS FOR A HOSPITAL
+// GET /api/v1/hospitals/:id/doctors
+// ======================================================
+
+// Public route.
+// Used by Hospitals.jsx to load doctors.
+
+router.get(
+  "/:id/doctors",
+  getHospitalDoctors
 );
+
+// ======================================================
+// BOOK HOSPITAL APPOINTMENT
+// POST /api/v1/hospitals/tokens
+// ======================================================
+
+// Public booking route.
+// Citizen does NOT need to be logged in.
+
 router.post(
   "/tokens",
-  authMiddleware,
-  requireRole("ADMIN", "HOSPITAL"),
-  requireHospitalAccess,
   createHospitalToken
 );
-router.get(
-  "/queue/status",
-  authMiddleware,
-  requireRole("ADMIN", "HOSPITAL"),
-  requireHospitalAccess,
-  getHospitalQueueStatus
-);
-router.post(
-  "/queue/next",
-  authMiddleware,
-  requireRole("ADMIN", "HOSPITAL"),
-  requireHospitalAccess,
-  callNextHospitalToken
-);
-router.post(
-  "/queue/complete",
-  authMiddleware,
-  requireRole("ADMIN", "HOSPITAL"),
-  requireHospitalAccess,
-  completeHospitalToken
-);
-router.post(
-  "/queue/skip",
-  authMiddleware,
-  requireRole("ADMIN", "HOSPITAL"),
-  requireHospitalAccess,
-  skipHospitalToken
-);
+
+// ======================================================
+// EXPORT ROUTER
+// ======================================================
 
 module.exports = router;
