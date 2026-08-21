@@ -342,6 +342,67 @@ function Hospitals() {
       );
 
       // ------------------------------------------
+      // GET LOGIN TOKEN
+      // ------------------------------------------
+
+      let authToken = null;
+
+      // First try the application's session storage.
+      try {
+        const storedSession =
+          localStorage.getItem(
+            "queueless_session"
+          );
+
+        if (storedSession) {
+          const parsedSession =
+            JSON.parse(storedSession);
+
+          authToken =
+            parsedSession?.token ||
+            parsedSession?.accessToken ||
+            parsedSession?.access_token ||
+            null;
+        }
+      } catch (sessionError) {
+        console.warn(
+          "Unable to read queueless_session:",
+          sessionError
+        );
+      }
+
+      // Try common token keys used by the application.
+      if (!authToken) {
+        authToken =
+          localStorage.getItem("token") ||
+          localStorage.getItem("accessToken") ||
+          localStorage.getItem("access_token") ||
+          localStorage.getItem("queueless_token") ||
+          null;
+      }
+
+      console.log(
+        "BOOKING AUTH CHECK:",
+        {
+          tokenExists: !!authToken,
+          tokenPreview: authToken
+            ? `${authToken.substring(0, 15)}...`
+            : null,
+        }
+      );
+
+      // ------------------------------------------
+      // LOGIN REQUIRED
+      // ------------------------------------------
+
+      if (!authToken) {
+        setError(
+          "Your login session has expired. Please login again."
+        );
+        return;
+      }
+
+      // ------------------------------------------
       // API REQUEST
       // ------------------------------------------
 
@@ -354,6 +415,11 @@ function Hospitals() {
             headers: {
               "Content-Type":
                 "application/json",
+
+              // Backend authMiddleware expects:
+              // Authorization: Bearer <JWT>
+              Authorization:
+                `Bearer ${authToken}`,
             },
 
             body: JSON.stringify({
@@ -380,11 +446,20 @@ function Hospitals() {
       );
 
       // ------------------------------------------
-      // READ RESPONSE
+      // READ RESPONSE SAFELY
       // ------------------------------------------
 
-      const data =
-        await response.json();
+      let data = {};
+
+      try {
+        data =
+          await response.json();
+      } catch (jsonError) {
+        console.error(
+          "Unable to parse booking response:",
+          jsonError
+        );
+      }
 
       console.log(
         "Booking API response:",
@@ -392,12 +467,37 @@ function Hospitals() {
       );
 
       // ------------------------------------------
-      // API ERROR
+      // AUTHENTICATION ERROR
+      // ------------------------------------------
+
+      if (response.status === 401) {
+        setError(
+          data?.message ||
+          "Your login session is invalid or expired. Please login again."
+        );
+        return;
+      }
+
+      // ------------------------------------------
+      // ACCESS ERROR
+      // ------------------------------------------
+
+      if (response.status === 403) {
+        setError(
+          data?.message ||
+          "You do not have permission to book this appointment."
+        );
+        return;
+      }
+
+      // ------------------------------------------
+      // OTHER API ERROR
       // ------------------------------------------
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
+          data?.message ||
+          data?.error ||
           "Unable to book appointment"
         );
       }
@@ -428,6 +528,7 @@ function Hospitals() {
       setToken(data.token);
 
       setSuccess(
+        data?.message ||
         "Appointment booked successfully!"
       );
 
@@ -465,7 +566,7 @@ function Hospitals() {
       setSuccess("");
 
       setError(
-        err.message ||
+        err?.message ||
         "Unable to book appointment"
       );
 

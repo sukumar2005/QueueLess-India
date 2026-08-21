@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 14,
+            "activePatchIndex": 17,
             "patches": [
                 {
                     "date": 1787042322311,
@@ -64,6 +64,18 @@
                 {
                     "date": 1787219620667,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,23 +1,25 @@\n-import { BrowserRouter, Route } from \"react-router-dom\";\n+import { BrowserRouter, Routes, Route } from \"react-router-dom\";\n import { useEffect, useState } from \"react\";\n \n import { QueueProvider } from \"./context/QueueContext\";\n import AppShell from \"./components/AppShell\";\n import TrackAppointment from \"./pages/TrackAppointment\";\n \n-\n const getStoredSession = () => {\n   try {\n     const raw = localStorage.getItem(\"queueless_session\");\n+\n     return raw ? JSON.parse(raw) : null;\n   } catch {\n     return null;\n   }\n };\n \n function App() {\n-  const [session, setSession] = useState(getStoredSession);\n+  const [session, setSession] = useState(\n+    getStoredSession\n+  );\n \n   useEffect(() => {\n     if (session) {\n       localStorage.setItem(\n@@ -35,19 +37,39 @@\n \n   return (\n     <QueueProvider>\n       <BrowserRouter>\n-        <AppShell\n-          session={session}\n-          setSession={setSession}\n-          logout={logout}\n-        />\n-        <Route>\n-        <Route\n-  path=\"/track-appointment\"\n-  element={<TrackAppointment />}\n-/>\n-        </Route>\n+\n+        <Routes>\n+\n+          {/* ==================================================\n+              TRACK APPOINTMENT\n+              ================================================== */}\n+\n+          <Route\n+            path=\"/track-appointment\"\n+            element={\n+              <TrackAppointment />\n+            }\n+          />\n+\n+          {/* ==================================================\n+              ALL OTHER PAGES\n+              ================================================== */}\n+\n+          <Route\n+            path=\"*\"\n+            element={\n+              <AppShell\n+                session={session}\n+                setSession={setSession}\n+                logout={logout}\n+              />\n+            }\n+          />\n+\n+        </Routes>\n+\n       </BrowserRouter>\n     </QueueProvider>\n   );\n }\n"
+                },
+                {
+                    "date": 1787293055228,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,8 +3,9 @@\n \n import { QueueProvider } from \"./context/QueueContext\";\n import AppShell from \"./components/AppShell\";\n import TrackAppointment from \"./pages/TrackAppointment\";\n+import HospitalLiveQueue from \"./pages/HospitalQueue\";\n \n const getStoredSession = () => {\n   try {\n     const raw = localStorage.getItem(\"queueless_session\");\n"
+                },
+                {
+                    "date": 1787293078187,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -51,8 +51,12 @@\n             element={\n               <TrackAppointment />\n             }\n           />\n+          <Route\n+  path=\"/hospital-queue/:tokenId\"\n+  element={<HospitalLiveQueue />}\n+/>\n \n           {/* ==================================================\n               ALL OTHER PAGES\n               ================================================== */}\n"
+                },
+                {
+                    "date": 1787293282943,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,9 +3,9 @@\n \n import { QueueProvider } from \"./context/QueueContext\";\n import AppShell from \"./components/AppShell\";\n import TrackAppointment from \"./pages/TrackAppointment\";\n-import HospitalLiveQueue from \"./pages/HospitalQueue\";\n+import HospitalLiveQueue from \"./pages/HospitalLiveQueue\";\n \n const getStoredSession = () => {\n   try {\n     const raw = localStorage.getItem(\"queueless_session\");\n"
                 }
             ],
             "date": 1787042322311,

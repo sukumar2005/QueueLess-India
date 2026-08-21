@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { QueueProvider } from "./context/QueueContext";
 import AppShell from "./components/AppShell";
 import TrackAppointment from "./pages/TrackAppointment";
+import HospitalLiveQueue from "./pages/HospitalLiveQueue";
 
 const getStoredSession = () => {
   try {
@@ -51,6 +52,10 @@ function App() {
               <TrackAppointment />
             }
           />
+          <Route
+  path="/hospital-queue/:tokenId"
+  element={<HospitalLiveQueue />}
+/>
 
           {/* ==================================================
               ALL OTHER PAGES

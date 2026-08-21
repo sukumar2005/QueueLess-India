@@ -1,0 +1,18 @@
+{
+    "sourceFile": "frontend/src/pages/HospitalQueue.jsx",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787292951344,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787292951344,
+            "name": "Commit-0",
+            "content": "import { BrowserRouter, Routes, Route } from \"react-router-dom\";\r\nimport { useEffect, useState } from \"react\";\r\n\r\nimport { QueueProvider } from \"./context/QueueContext\";\r\nimport AppShell from \"./components/AppShell\";\r\nimport TrackAppointment from \"./pages/TrackAppointment\";\r\nimport HospitalQueue from \"./pages/HospitalQueue\";\r\n\r\nconst getStoredSession = () => {\r\n  try {\r\n    const raw = localStorage.getItem(\"queueless_session\");\r\n    return raw ? JSON.parse(raw) : null;\r\n  } catch {\r\n    return null;\r\n  }\r\n};\r\n\r\nfunction App() {\r\n  const [session, setSession] = useState(getStoredSession);\r\n\r\n  useEffect(() => {\r\n    if (session) {\r\n      localStorage.setItem(\r\n        \"queueless_session\",\r\n        JSON.stringify(session)\r\n      );\r\n    } else {\r\n      localStorage.removeItem(\"queueless_session\");\r\n    }\r\n  }, [session]);\r\n\r\n  const logout = () => {\r\n    setSession(null);\r\n  };\r\n\r\n  return (\r\n    <QueueProvider>\r\n      <BrowserRouter>\r\n\r\n        <AppShell\r\n          session={session}\r\n          setSession={setSession}\r\n          logout={logout}\r\n        />\r\n\r\n        <Routes>\r\n\r\n          <Route\r\n            path=\"/track-appointment\"\r\n            element={<TrackAppointment />}\r\n          />\r\n\r\n          <Route\r\n            path=\"/hospital-queue/:tokenId\"\r\n            element={<HospitalQueue />}\r\n          />\r\n\r\n        </Routes>\r\n\r\n      </BrowserRouter>\r\n    </QueueProvider>\r\n  );\r\n}\r\n\r\nexport default App;"
+        }
+    ]
+}

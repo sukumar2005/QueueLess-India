@@ -36,6 +36,54 @@ const addMinutes = (minutes) => {
 };
 
 // ======================================================
+// REQUEST / ID HELPERS
+// ======================================================
+
+const isValidObjectId = (value) =>
+  Boolean(value) && mongoose.Types.ObjectId.isValid(value);
+
+const getHospitalIdFromRequest = (req) => {
+  // Hospital staff must always use the hospital stored in
+  // their authenticated session. Admin can use the request value.
+  if (req.user?.role === "HOSPITAL" && req.user?.hospitalId) {
+    return String(req.user.hospitalId);
+  }
+
+  return (
+    req.params?.hospitalId ||
+    req.body?.hospitalId ||
+    req.query?.hospitalId ||
+    req.params?.id ||
+    req.query?.id ||
+    ""
+  );
+};
+
+const normalizeAttendanceAction = (action) => {
+  const aliases = {
+    checkin: "check-in",
+    checkout: "check-out",
+    "break-start": "start-break",
+    "break-end": "end-break",
+    "working-hours": "save-hours",
+    working_hours: "save-hours",
+  };
+
+  return aliases[action] || action;
+};
+
+const getDoctorForHospital = async (hospitalId, doctorId) => {
+  if (!isValidObjectId(hospitalId) || !isValidObjectId(doctorId)) {
+    return null;
+  }
+
+  return Doctor.findOne({
+    _id: doctorId,
+    hospital: hospitalId,
+  });
+};
+
+// ======================================================
 // CREATE HOSPITAL DATA IF NEEDED
 // ======================================================
 
@@ -721,11 +769,32 @@ const createHospitalToken = async (req, res) => {
       });
 
     // ------------------------------------------
-    // GENERATE TOKEN NUMBER
+    // GENERATE A UNIQUE TOKEN NUMBER
     // ------------------------------------------
+    // Do NOT use waitingCount + 1. Completed/skipped tokens
+    // would otherwise cause duplicate numbers.
+
+    const latestToken = await Token.findOne({
+      tokenType: "hospital",
+      hospital: hospitalId,
+      doctor: doctorId,
+    }).sort({ createdAt: -1 });
+
+    const latestNumber = Number(
+      String(latestToken?.tokenNumber || "")
+        .replace(/^H-/i, "")
+    );
+
+    const tokenSequence = Number.isFinite(latestNumber) && latestNumber > 0
+      ? latestNumber + 1
+      : (await Token.countDocuments({
+          tokenType: "hospital",
+          hospital: hospitalId,
+          doctor: doctorId,
+        })) + 1;
 
     const tokenNumber =
-      `H-${String(waitingCount + 1).padStart(3, "0")}`;
+      `H-${String(tokenSequence).padStart(3, "0")}`;
 
     // ------------------------------------------
     // CALCULATE EXPECTED TIME
@@ -828,6 +897,532 @@ const createHospitalToken = async (req, res) => {
     });
   }
 };
+// ======================================================
+// GET HOSPITAL LIVE QUEUE STATUS
+// ======================================================
+
+const getHospitalQueueStatus = async (req, res) => {
+  try {
+    const hospitalId = getHospitalIdFromRequest(req);
+    const doctorId = req.query?.doctorId || req.body?.doctorId;
+
+    if (!hospitalId) {
+      return res.status(400).json({
+        success: false,
+        message: "Hospital ID is required",
+      });
+    }
+
+    if (!doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: "Doctor ID is required",
+      });
+    }
+
+    if (!isValidObjectId(hospitalId) || !isValidObjectId(doctorId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid hospital or doctor ID",
+      });
+    }
+
+    const doctor = await getDoctorForHospital(hospitalId, doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found for this hospital",
+      });
+    }
+
+    const queue = await Token.find({
+      tokenType: "hospital",
+      hospital: hospitalId,
+      doctor: doctorId,
+      status: {
+        $in: ["waiting", "serving"],
+      },
+    })
+      .populate("hospital")
+      .populate("doctor")
+      .sort({ createdAt: 1 });
+
+    // IMPORTANT: only a token with status "serving" is
+    // the CURRENT SERVING token. Never fall back to a waiting
+    // token, otherwise the dashboard displays a waiting patient
+    // as if they are already being served.
+    const currentToken =
+      queue.find((token) => token.status === "serving") || null;
+
+    const waitingTokens = queue.filter(
+      (token) => token.status === "waiting"
+    );
+
+    return res.status(200).json({
+      success: true,
+      currentToken,
+      peopleWaiting: waitingTokens.length,
+      queue,
+    });
+  } catch (error) {
+    console.error(
+      "Get hospital queue status error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+// ======================================================
+// UPDATE DOCTOR ATTENDANCE
+// ======================================================
+
+const updateDoctorAttendance = async (req, res) => {
+  try {
+    const hospitalId = getHospitalIdFromRequest(req);
+    const doctorId = req.params?.doctorId;
+    const body = req.body || {};
+
+    const action = normalizeAttendanceAction(body.action);
+    const reason = String(body.reason || "").trim();
+    const start = body.start;
+    const end = body.end;
+
+    if (!hospitalId) {
+      return res.status(400).json({
+        success: false,
+        message: "Hospital ID is required",
+      });
+    }
+
+    if (!doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: "Doctor ID is required",
+      });
+    }
+
+    if (!isValidObjectId(hospitalId) || !isValidObjectId(doctorId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid hospital or doctor ID",
+      });
+    }
+
+    if (!action) {
+      return res.status(400).json({
+        success: false,
+        message: "Attendance action is required",
+      });
+    }
+
+    const allowedActions = [
+      "check-in",
+      "check-out",
+      "start-break",
+      "end-break",
+      "save-hours",
+    ];
+
+    if (!allowedActions.includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid attendance action: ${body.action}`,
+      });
+    }
+
+    const hospital = await Hospital.findById(hospitalId);
+
+    if (!hospital) {
+      return res.status(404).json({
+        success: false,
+        message: "Hospital not found",
+      });
+    }
+
+    const doctor = await getDoctorForHospital(
+      hospitalId,
+      doctorId
+    );
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found for this hospital",
+      });
+    }
+
+    // --------------------------------------------------
+    // CHECK IN
+    // --------------------------------------------------
+    if (action === "check-in") {
+      doctor.available = true;
+      doctor.attendanceStatus = "Present";
+      doctor.isOnBreak = false;
+      doctor.breakReason = "";
+      doctor.lastCheckIn = new Date();
+
+      await doctor.save();
+
+      return res.json({
+        success: true,
+        message: `${doctor.name} checked in successfully`,
+        doctor,
+      });
+    }
+
+    // --------------------------------------------------
+    // CHECK OUT
+    // --------------------------------------------------
+    if (action === "check-out") {
+      doctor.available = false;
+      doctor.attendanceStatus = "Absent";
+      doctor.isOnBreak = false;
+      doctor.breakReason = "";
+      doctor.lastCheckOut = new Date();
+
+      await doctor.save();
+
+      return res.json({
+        success: true,
+        message: `${doctor.name} checked out successfully`,
+        doctor,
+      });
+    }
+
+    // --------------------------------------------------
+    // START BREAK
+    // --------------------------------------------------
+    if (action === "start-break") {
+      if (!doctor.available || doctor.attendanceStatus !== "Present") {
+        return res.status(400).json({
+          success: false,
+          message: "Doctor must be checked in before starting a break",
+        });
+      }
+
+      doctor.available = false;
+      doctor.attendanceStatus = "On Break";
+      doctor.isOnBreak = true;
+      doctor.breakReason = reason || "Break";
+
+      await doctor.save();
+
+      return res.json({
+        success: true,
+        message: `${doctor.name} is now on break`,
+        doctor,
+      });
+    }
+
+    // --------------------------------------------------
+    // END BREAK
+    // --------------------------------------------------
+    if (action === "end-break") {
+      if (!doctor.isOnBreak) {
+        return res.status(400).json({
+          success: false,
+          message: "Doctor is not currently on break",
+        });
+      }
+
+      doctor.available = true;
+      doctor.attendanceStatus = "Present";
+      doctor.isOnBreak = false;
+      doctor.breakReason = "";
+
+      await doctor.save();
+
+      return res.json({
+        success: true,
+        message: `${doctor.name} break ended`,
+        doctor,
+      });
+    }
+
+    // --------------------------------------------------
+    // SAVE WORKING HOURS
+    // --------------------------------------------------
+    if (action === "save-hours") {
+      if (!start || !end) {
+        return res.status(400).json({
+          success: false,
+          message: "Working start and end time are required",
+        });
+      }
+
+      doctor.workingHoursStart = start;
+      doctor.workingHoursEnd = end;
+
+      await doctor.save();
+
+      return res.json({
+        success: true,
+        message: "Working hours saved successfully",
+        doctor,
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "Unsupported attendance action",
+    });
+  } catch (error) {
+    console.error(
+      "Update doctor attendance error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+// ======================================================
+// CALL NEXT HOSPITAL TOKEN
+// ======================================================
+
+const callNextHospitalToken = async (req, res) => {
+  try {
+    const body = req.body || {};
+    const hospitalId = getHospitalIdFromRequest(req);
+    const { doctorId } = body;
+    const selectedCounter = Number(body.counter);
+
+    if (!hospitalId || !doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: "Hospital and doctor are required",
+      });
+    }
+
+    if (
+      !isValidObjectId(hospitalId) ||
+      !isValidObjectId(doctorId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid hospital or doctor ID",
+      });
+    }
+
+    if (![1, 2, 3].includes(selectedCounter)) {
+      return res.status(400).json({
+        success: false,
+        message: "Counter must be 1, 2, or 3",
+      });
+    }
+
+    const doctor = await getDoctorForHospital(
+      hospitalId,
+      doctorId
+    );
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found for this hospital",
+      });
+    }
+
+    if (!doctor.available || doctor.attendanceStatus === "On Break") {
+      return res.status(400).json({
+        success: false,
+        message: "Doctor is not available to serve patients",
+      });
+    }
+
+    const currentServing = await Token.findOne({
+      tokenType: "hospital",
+      hospital: hospitalId,
+      doctor: doctorId,
+      status: "serving",
+    });
+
+    if (currentServing) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Complete or skip the current patient before calling the next patient.",
+        token: currentServing,
+      });
+    }
+
+    const nextToken = await Token.findOne({
+      tokenType: "hospital",
+      hospital: hospitalId,
+      doctor: doctorId,
+      status: "waiting",
+    }).sort({ createdAt: 1 });
+
+    if (!nextToken) {
+      return res.json({
+        success: true,
+        message: "No patients waiting",
+        token: null,
+      });
+    }
+
+    nextToken.status = "serving";
+    nextToken.counter = selectedCounter;
+
+    await nextToken.save();
+
+    const populatedToken = await Token.findById(nextToken._id)
+      .populate("hospital")
+      .populate("doctor");
+
+    return res.json({
+      success: true,
+      message: `${populatedToken.tokenNumber} is now being served`,
+      token: populatedToken,
+    });
+  } catch (error) {
+    console.error("Call next hospital token error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ======================================================
+// COMPLETE CURRENT HOSPITAL TOKEN
+// ======================================================
+
+const completeHospitalToken = async (req, res) => {
+  try {
+    const body = req.body || {};
+    const hospitalId = getHospitalIdFromRequest(req);
+    const { doctorId } = body;
+
+    if (!hospitalId || !doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: "Hospital and doctor are required",
+      });
+    }
+
+    if (!isValidObjectId(hospitalId) || !isValidObjectId(doctorId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid hospital or doctor ID",
+      });
+    }
+
+    const doctor = await getDoctorForHospital(hospitalId, doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found for this hospital",
+      });
+    }
+
+    const token = await Token.findOne({
+      tokenType: "hospital",
+      hospital: hospitalId,
+      doctor: doctorId,
+      status: "serving",
+    });
+
+    if (!token) {
+      return res.status(404).json({
+        success: false,
+        message: "No patient is currently being served",
+      });
+    }
+
+    token.status = "completed";
+    token.servedAt = new Date();
+
+    await token.save();
+
+    return res.json({
+      success: true,
+      message: `${token.tokenNumber} completed successfully`,
+      token,
+    });
+  } catch (error) {
+    console.error("Complete hospital token error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ======================================================
+// SKIP CURRENT HOSPITAL TOKEN
+// ======================================================
+
+const skipHospitalToken = async (req, res) => {
+  try {
+    const body = req.body || {};
+    const hospitalId = getHospitalIdFromRequest(req);
+    const { doctorId } = body;
+
+    if (!hospitalId || !doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: "Hospital and doctor are required",
+      });
+    }
+
+    if (!isValidObjectId(hospitalId) || !isValidObjectId(doctorId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid hospital or doctor ID",
+      });
+    }
+
+    const doctor = await getDoctorForHospital(hospitalId, doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found for this hospital",
+      });
+    }
+
+    const token = await Token.findOne({
+      tokenType: "hospital",
+      hospital: hospitalId,
+      doctor: doctorId,
+      status: "serving",
+    });
+
+    if (!token) {
+      return res.status(404).json({
+        success: false,
+        message: "No active patient token",
+      });
+    }
+
+    token.status = "skipped";
+    await token.save();
+
+    return res.json({
+      success: true,
+      message: `${token.tokenNumber} skipped`,
+      token,
+    });
+  } catch (error) {
+    console.error("Skip hospital token error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 // ======================================================
 // EXPORT
@@ -837,4 +1432,15 @@ module.exports = {
   getHospitals,
   getHospitalDoctors,
   createHospitalToken,
+  getHospitalQueueStatus,
+
+  // Doctor attendance
+  updateDoctorAttendance,
+
+  // Hospital queue control
+  callNextHospitalToken,
+  completeHospitalToken,
+  skipHospitalToken,
+
+  diseases,
 };
