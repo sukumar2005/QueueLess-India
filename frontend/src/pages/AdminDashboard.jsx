@@ -3,6 +3,7 @@ import {
   BarChart3,
   Building2,
   Clock3,
+  MessageSquare,
   RefreshCw,
   TrendingUp,
   UserCheck,
@@ -19,23 +20,80 @@ function AdminDashboard() {
   const [queue, setQueue] = useState([]);
   const [hospitals, setHospitals] = useState([]);
   const [offices, setOffices] = useState([]);
+
+  const [analytics, setAnalytics] = useState({
+    totalServices: 0,
+    totalHospitals: 0,
+    totalOffices: 0,
+
+    totalDoctors: 0,
+    totalOfficers: 0,
+
+    activeDoctors: 0,
+    activeOfficers: 0,
+
+    totalTokens: 0,
+    totalWaitingTokens: 0,
+    totalServingTokens: 0,
+    totalCompletedTokens: 0,
+    totalSkippedTokens: 0,
+
+    onlineTokens: 0,
+    offlineTokens: 0,
+
+    todayTokenCount: 0,
+    todayCompletedTokens: 0,
+
+    completionRate: 0,
+    averageServiceTime: 0,
+    averageWaitingTime: 0,
+
+    unreadNotifications: 0,
+  });
+
+  const [dailyStats, setDailyStats] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [complaints, setComplaints] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // =====================================================
+  // LOAD DASHBOARD DATA
+  // =====================================================
 
   const loadDashboard = async () => {
     try {
       setError("");
 
-      const [analyticsResponse, servicesResponse, queueResponse, hospitalsResponse, officesResponse] =
-        await Promise.all([
-          fetch(`${API_URL}/analytics/summary`),
-          fetch(`${API_URL}/services`),
-          fetch(`${API_URL}/queue/status`),
-          fetch(`${API_URL}/hospitals`),
-          fetch(`${API_URL}/government-offices`),
-        ]);
+      const session = JSON.parse(
+        localStorage.getItem("queueless_session") || "{}"
+      );
+
+      const [
+        analyticsResponse,
+        servicesResponse,
+        queueResponse,
+        hospitalsResponse,
+        officesResponse,
+        complaintsResponse,
+      ] = await Promise.all([
+        fetch(`${API_URL}/analytics/summary`),
+
+        fetch(`${API_URL}/services`),
+
+        fetch(`${API_URL}/queue/status`),
+
+        fetch(`${API_URL}/hospitals`),
+
+        fetch(`${API_URL}/government-offices`),
+
+        fetch(`${API_URL}/complaints`, {
+          headers: {
+            Authorization: `Bearer ${session.token || ""}`,
+          },
+        }),
+      ]);
 
       if (!analyticsResponse.ok) {
         throw new Error("Unable to load analytics");
@@ -63,19 +121,47 @@ function AdminDashboard() {
       const hospitalsData = await hospitalsResponse.json();
       const officesData = await officesResponse.json();
 
-      setServices(servicesData.services || []);
-      setQueue(queueData.queue || []);
-      setHospitals(hospitalsData.hospitals || []);
-      setOffices(officesData.offices || []);
-      setNotifications(analyticsData.recentNotifications || []);
-    } catch (err) {
-      console.error(err);
+      const complaintsData = complaintsResponse.ok
+        ? await complaintsResponse.json()
+        : { complaints: [] };
 
-      setError("Unable to load administration data.");
+      setServices(servicesData.services || []);
+
+      setQueue(queueData.queue || []);
+
+      setHospitals(hospitalsData.hospitals || []);
+
+      setOffices(officesData.offices || []);
+
+      setNotifications(
+        analyticsData.recentNotifications || []
+      );
+
+      setAnalytics(
+        analyticsData.summary || {}
+      );
+
+      setDailyStats(
+        analyticsData.dailyStats || []
+      );
+
+      setComplaints(
+        complaintsData.complaints || []
+      );
+    } catch (err) {
+      console.error("Admin dashboard error:", err);
+
+      setError(
+        "Unable to load administration data."
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  // =====================================================
+  // INITIAL LOAD + AUTO REFRESH
+  // =====================================================
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -92,6 +178,10 @@ function AdminDashboard() {
     };
   }, []);
 
+  // =====================================================
+  // QUEUE DATA
+  // =====================================================
+
   const waitingTokens = queue.filter(
     (token) => token.status === "waiting"
   );
@@ -105,72 +195,98 @@ function AdminDashboard() {
   );
 
   const totalPeopleToday = queue.length;
+
   const totalWaiting = waitingTokens.length;
 
-  const activeDoctors = hospitals.reduce(
-    (total, hospital) => total + (hospital.availableDoctors || 0),
-    0
-  );
+  // =====================================================
+  // ANALYTICS DATA
+  // =====================================================
 
-  const activeOfficers = offices.reduce(
-    (total, office) => total + (office.availableOfficers || 0),
-    0
-  );
+  const activeDoctors =
+    analytics.activeDoctors || 0;
+
+  const activeOfficers =
+    analytics.activeOfficers || 0;
+
+  const totalDoctors =
+    analytics.totalDoctors || 0;
 
   const totalOfficers =
-    services.reduce(
-      (total, service) => total + (service.totalOfficers || 0),
-      0
-    ) + activeOfficers;
+    analytics.totalOfficers || 0;
 
   const averageWait =
-    services.length > 0
-      ? Math.round(
-          services.reduce(
-            (total, service) => total + (service.waitingTime || 0),
-            0
-          ) / services.length
-        )
-      : 0;
+    analytics.averageWaitingTime || 0;
 
-  const unreadNotifications = notifications.filter((item) => !item.read).length;
+  // =====================================================
+  // NOTIFICATIONS
+  // =====================================================
+
+  const unreadNotifications =
+    notifications.filter(
+      (item) => !item.read
+    ).length;
+
+  // =====================================================
+  // COMPLAINTS
+  // =====================================================
+
+  const openComplaints =
+    complaints.filter(
+      (complaint) =>
+        complaint.status === "Open"
+    ).length;
+
+  const inProgressComplaints =
+    complaints.filter(
+      (complaint) =>
+        complaint.status === "In Progress"
+    ).length;
+
+  // =====================================================
+  // SERVICE QUEUE COUNT
+  // =====================================================
 
   const getServiceCount = (serviceId) => {
     return queue.filter(
       (token) =>
-        token.service?._id === serviceId
+        token.service?._id?.toString() ===
+        serviceId?.toString()
     ).length;
   };
+
+  // =====================================================
+  // LOADING
+  // =====================================================
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-
         <div className="text-center">
-
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-700" />
 
           <p className="mt-4 text-slate-500">
             Loading admin dashboard...
           </p>
-
         </div>
-
       </div>
     );
   }
 
+  // =====================================================
+  // DASHBOARD
+  // =====================================================
+
   return (
     <div className="min-h-screen bg-slate-50">
 
-      {/* HEADER */}
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
       <header className="border-b border-slate-200 bg-white">
-
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
 
           <div>
-
             <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
               Administration Portal
             </p>
@@ -182,7 +298,6 @@ function AdminDashboard() {
             <p className="mt-1 text-sm text-slate-500">
               Monitor services, queues and resource utilization.
             </p>
-
           </div>
 
           <div className="flex gap-3">
@@ -204,47 +319,54 @@ function AdminDashboard() {
             </Link>
 
           </div>
-
         </div>
-
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-8">
 
-        {/* ERROR */}
+        {/* =================================================
+            ERROR
+        ================================================= */}
 
         {error && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
-
             <p className="text-sm font-semibold text-red-700">
               {error}
             </p>
-
           </div>
         )}
 
-        {/* OVERVIEW */}
+        {/* =================================================
+            OVERVIEW
+        ================================================= */}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 
           <StatCard
             icon={<Users />}
             title="Total Queue"
-            value={totalPeopleToday}
+            value={
+              analytics.todayTokenCount || 0
+            }
             description="Active tokens"
           />
 
           <StatCard
             icon={<Clock3 />}
             title="Waiting"
-            value={totalWaiting}
+            value={
+              analytics.totalWaitingTokens || 0
+            }
             description="Citizens waiting"
           />
 
           <StatCard
             icon={<UserCheck />}
             title="Active Staff"
-            value={`${activeDoctors + activeOfficers}/${Math.max(totalOfficers, 1)}`}
+            value={`${activeDoctors + activeOfficers}/${Math.max(
+              totalDoctors + totalOfficers,
+              1
+            )}`}
             description="Doctors & officers available"
           />
 
@@ -257,27 +379,280 @@ function AdminDashboard() {
 
         </div>
 
-        <section className="mt-8 grid gap-4 lg:grid-cols-3">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Healthcare Units</p>
-            <p className="mt-3 text-3xl font-black text-slate-900">{hospitals.length}</p>
-            <p className="mt-1 text-sm text-slate-500">Hospitals monitored</p>
-          </div>
+        {/* =================================================
+            PLATFORM SUMMARY
+        ================================================= */}
+
+        <section className="mt-8 grid gap-4 lg:grid-cols-4">
+
+          {/* HEALTHCARE */}
 
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Government Offices</p>
-            <p className="mt-3 text-3xl font-black text-slate-900">{offices.length}</p>
-            <p className="mt-1 text-sm text-slate-500">Office counters active</p>
+
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Healthcare Units
+            </p>
+
+            <p className="mt-3 text-3xl font-black text-slate-900">
+              {hospitals.length}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Hospitals monitored
+            </p>
+
           </div>
 
+          {/* GOVERNMENT OFFICES */}
+
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Notifications</p>
-            <p className="mt-3 text-3xl font-black text-slate-900">{unreadNotifications}</p>
-            <p className="mt-1 text-sm text-slate-500">Unread status updates</p>
+
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Government Offices
+            </p>
+
+            <p className="mt-3 text-3xl font-black text-slate-900">
+              {offices.length}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Office counters active
+            </p>
+
           </div>
+
+          {/* NOTIFICATIONS */}
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Notifications
+            </p>
+
+            <p className="mt-3 text-3xl font-black text-slate-900">
+              {unreadNotifications}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Unread status updates
+            </p>
+
+          </div>
+
+          {/* COMPLAINTS */}
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Complaints
+            </p>
+
+            <p className="mt-3 text-3xl font-black text-slate-900">
+              {openComplaints}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Open issues ({inProgressComplaints} in progress)
+            </p>
+
+          </div>
+
         </section>
 
-        {/* SYSTEM STATUS */}
+        {/* =================================================
+            PHASE 15 - PERFORMANCE ANALYTICS
+        ================================================= */}
+
+        <section className="mt-8">
+
+          <div className="mb-4">
+
+            <h2 className="text-xl font-bold text-slate-900">
+              Performance Analytics
+            </h2>
+
+            <p className="text-sm text-slate-500">
+              Real-time queue and service performance.
+            </p>
+
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+
+            <StatCard
+              icon={<Clock3 />}
+              title="Avg. Waiting Time"
+              value={`${analytics.averageWaitingTime || 0} min`}
+              description="Token creation to service start"
+            />
+
+            <StatCard
+              icon={<TrendingUp />}
+              title="Avg. Service Time"
+              value={`${analytics.averageServiceTime || 0} min`}
+              description="Service start to completion"
+            />
+
+            <StatCard
+              icon={<UserCheck />}
+              title="Completion Rate"
+              value={`${analytics.completionRate || 0}%`}
+              description="Completed vs processed tokens"
+            />
+
+            <StatCard
+              icon={<Users />}
+              title="Today's Completed"
+              value={
+                analytics.todayCompletedTokens || 0
+              }
+              description="Completed tokens today"
+            />
+
+          </div>
+
+        </section>
+
+        {/* =================================================
+            ONLINE / OFFLINE TOKENS
+        ================================================= */}
+
+        <section className="mt-6 grid gap-4 md:grid-cols-2">
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Online Tokens
+            </p>
+
+            <p className="mt-2 text-3xl font-black text-blue-700">
+              {analytics.onlineTokens || 0}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Citizens who booked digitally
+            </p>
+
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Offline Tokens
+            </p>
+
+            <p className="mt-2 text-3xl font-black text-slate-900">
+              {analytics.offlineTokens || 0}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Tokens created by staff
+            </p>
+
+          </div>
+
+        </section>
+
+        {/* =================================================
+            7 DAY ANALYTICS
+        ================================================= */}
+
+        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+
+          <div className="mb-6">
+
+            <h2 className="text-xl font-bold text-slate-900">
+              7-Day Queue Trend
+            </h2>
+
+            <p className="text-sm text-slate-500">
+              Daily token activity across QueueLess India.
+            </p>
+
+          </div>
+
+          <div className="space-y-4">
+
+            {dailyStats.length === 0 ? (
+              <p className="text-sm text-slate-500">
+                No daily analytics available.
+              </p>
+            ) : (
+              dailyStats.map((day) => (
+
+                <div
+                  key={day.date}
+                  className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+                >
+
+                  <div className="flex items-center justify-between">
+
+                    <span className="font-semibold text-slate-700">
+                      {day.date}
+                    </span>
+
+                    <span className="text-sm font-bold text-slate-900">
+                      {day.total} tokens
+                    </span>
+
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-4 gap-3 text-center">
+
+                    <div>
+                      <p className="text-xs text-slate-400">
+                        Waiting
+                      </p>
+
+                      <p className="font-bold">
+                        {day.waiting}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-slate-400">
+                        Serving
+                      </p>
+
+                      <p className="font-bold text-blue-700">
+                        {day.serving}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-slate-400">
+                        Completed
+                      </p>
+
+                      <p className="font-bold text-green-700">
+                        {day.completed}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-slate-400">
+                        Skipped
+                      </p>
+
+                      <p className="font-bold text-red-700">
+                        {day.skipped}
+                      </p>
+                    </div>
+
+                  </div>
+
+                </div>
+
+              ))
+            )}
+
+          </div>
+
+        </section>
+
+        {/* =================================================
+            SYSTEM STATUS
+        ================================================= */}
 
         <section className="mt-8 rounded-3xl bg-blue-700 p-8 text-white">
 
@@ -314,7 +689,9 @@ function AdminDashboard() {
 
         </section>
 
-        {/* SERVICE PERFORMANCE */}
+        {/* =================================================
+            SERVICE PERFORMANCE
+        ================================================= */}
 
         <section className="mt-8 rounded-3xl border border-slate-200 bg-white shadow-sm">
 
@@ -323,7 +700,9 @@ function AdminDashboard() {
             <div className="flex items-center gap-3">
 
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+
                 <BarChart3 className="h-5 w-5" />
+
               </div>
 
               <div>
@@ -344,129 +723,137 @@ function AdminDashboard() {
 
           <div className="divide-y divide-slate-100">
 
-            {services.map((service) => {
+            {services.length === 0 ? (
+              <p className="p-6 text-sm text-slate-500">
+                No services available.
+              </p>
+            ) : (
+              services.map((service) => {
 
-              const count =
-                getServiceCount(
-                  service._id
+                const count =
+                  getServiceCount(service._id);
+
+                const demand = Math.min(
+                  Math.round(
+                    (count / 8) * 100
+                  ),
+                  100
                 );
 
-              const demand = Math.min(
-                Math.round(
-                  (count / 8) * 100
-                ),
-                100
-              );
+                return (
 
-              return (
-                <div
-                  key={service._id}
-                  className="p-6"
-                >
+                  <div
+                    key={service._id}
+                    className="p-6"
+                  >
 
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
-                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4">
 
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
 
-                        <Building2 className="h-5 w-5 text-blue-700" />
+                          <Building2 className="h-5 w-5 text-blue-700" />
 
-                      </div>
+                        </div>
 
-                      <div>
+                        <div>
 
-                        <h3 className="font-bold text-slate-900">
-                          {service.name}
-                        </h3>
+                          <h3 className="font-bold text-slate-900">
+                            {service.name}
+                          </h3>
 
-                        <p className="text-sm text-slate-500">
-                          {service.department}
-                        </p>
+                          <p className="text-sm text-slate-500">
+                            {service.department}
+                          </p>
+
+                        </div>
 
                       </div>
 
-                    </div>
+                      <div className="grid grid-cols-3 gap-6 text-right">
 
-                    <div className="grid grid-cols-3 gap-6 text-right">
+                        <div>
 
-                      <div>
+                          <p className="text-xs text-slate-400">
+                            QUEUE
+                          </p>
 
-                        <p className="text-xs text-slate-400">
-                          QUEUE
-                        </p>
+                          <p className="font-bold">
+                            {count}
+                          </p>
 
-                        <p className="font-bold">
-                          {count}
-                        </p>
+                        </div>
 
-                      </div>
+                        <div>
 
-                      <div>
+                          <p className="text-xs text-slate-400">
+                            WAIT
+                          </p>
 
-                        <p className="text-xs text-slate-400">
-                          WAIT
-                        </p>
+                          <p className="font-bold">
+                            {service.waitingTime || 0} min
+                          </p>
 
-                        <p className="font-bold">
-                          {service.waitingTime || 0} min
-                        </p>
+                        </div>
 
-                      </div>
+                        <div>
 
-                      <div>
+                          <p className="text-xs text-slate-400">
+                            OFFICERS
+                          </p>
 
-                        <p className="text-xs text-slate-400">
-                          OFFICERS
-                        </p>
+                          <p className="font-bold">
+                            {service.availableOfficers || 0}/
+                            {service.totalOfficers || 0}
+                          </p>
 
-                        <p className="font-bold">
-                          {service.availableOfficers || 0}/
-                          {service.totalOfficers || 0}
-                        </p>
+                        </div>
 
                       </div>
 
                     </div>
 
-                  </div>
+                    <div className="mt-5">
 
-                  <div className="mt-5">
+                      <div className="mb-2 flex justify-between text-xs">
 
-                    <div className="mb-2 flex justify-between text-xs">
+                        <span className="font-semibold text-slate-500">
+                          Demand
+                        </span>
 
-                      <span className="font-semibold text-slate-500">
-                        Demand
-                      </span>
+                        <span className="font-bold text-slate-700">
+                          {demand}%
+                        </span>
 
-                      <span className="font-bold text-slate-700">
-                        {demand}%
-                      </span>
+                      </div>
 
-                    </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
 
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-blue-600"
+                          style={{
+                            width: `${demand}%`,
+                          }}
+                        />
 
-                      <div
-                        className="h-full rounded-full bg-blue-600"
-                        style={{
-                          width: `${demand}%`,
-                        }}
-                      />
+                      </div>
 
                     </div>
 
                   </div>
 
-                </div>
-              );
-            })}
+                );
+              })
+            )}
 
           </div>
 
         </section>
 
-        {/* ANALYTICS GRID */}
+        {/* =================================================
+            QUEUE DISTRIBUTION + AI
+        ================================================= */}
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
 
@@ -487,19 +874,28 @@ function AdminDashboard() {
               <MetricRow
                 label="Waiting"
                 value={waitingTokens.length}
-                total={Math.max(totalPeopleToday, 1)}
+                total={Math.max(
+                  totalPeopleToday,
+                  1
+                )}
               />
 
               <MetricRow
                 label="Serving"
                 value={servingTokens.length}
-                total={Math.max(totalPeopleToday, 1)}
+                total={Math.max(
+                  totalPeopleToday,
+                  1
+                )}
               />
 
               <MetricRow
                 label="Completed"
                 value={completedTokens.length}
-                total={Math.max(totalPeopleToday, 1)}
+                total={Math.max(
+                  totalPeopleToday,
+                  1
+                )}
               />
 
             </div>
@@ -519,11 +915,9 @@ function AdminDashboard() {
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-green-700">
-
               QueueLess India can analyze service demand,
               waiting time and officer availability to recommend
               where additional staff should be assigned.
-
             </p>
 
             <div className="mt-5 rounded-2xl bg-white p-5">
@@ -570,7 +964,9 @@ function AdminDashboard() {
 
         </div>
 
-        {/* DEMO DATA NOTICE */}
+        {/* =================================================
+            DEMO DATA NOTICE
+        ================================================= */}
 
         <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
 
@@ -579,21 +975,104 @@ function AdminDashboard() {
           </p>
 
           <p className="mt-1 text-sm leading-6 text-amber-700">
-
             Current analytics are generated from live queue and
             service data. In the production version, historical
             queue records will be used to train demand forecasting
             and resource optimization models.
-
           </p>
 
         </div>
+
+        {/* =================================================
+            COMPLAINTS MANAGEMENT
+        ================================================= */}
+
+        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+
+          <div className="mb-6 flex items-center justify-between">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-700">
+
+                <MessageSquare className="h-5 w-5" />
+
+              </div>
+
+              <div>
+
+                <h2 className="text-xl font-bold">
+                  Complaints
+                </h2>
+
+                <p className="text-sm text-slate-500">
+                  Monitor citizen issues
+                </p>
+
+              </div>
+
+            </div>
+
+            <Link
+              to="/complaints"
+              className="rounded-xl bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+            >
+              View All
+            </Link>
+
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+
+              <p className="text-sm font-semibold text-slate-600">
+                Open
+              </p>
+
+              <p className="mt-2 text-2xl font-black text-red-700">
+                {openComplaints}
+              </p>
+
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+
+              <p className="text-sm font-semibold text-slate-600">
+                In Progress
+              </p>
+
+              <p className="mt-2 text-2xl font-black text-orange-700">
+                {inProgressComplaints}
+              </p>
+
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+
+              <p className="text-sm font-semibold text-slate-600">
+                Total
+              </p>
+
+              <p className="mt-2 text-2xl font-black text-blue-700">
+                {complaints.length}
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
 
       </main>
 
     </div>
   );
 }
+
+// =====================================================
+// STAT CARD
+// =====================================================
 
 function StatCard({
   icon,
@@ -624,14 +1103,24 @@ function StatCard({
   );
 }
 
+// =====================================================
+// METRIC ROW
+// =====================================================
+
 function MetricRow({
   label,
   value,
   total,
 }) {
-  const percentage = Math.round(
-    (value / total) * 100
-  );
+  const percentage =
+    total > 0
+      ? Math.min(
+          Math.round(
+            (value / total) * 100
+          ),
+          100
+        )
+      : 0;
 
   return (
     <div>

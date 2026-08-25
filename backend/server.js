@@ -13,6 +13,7 @@ const governmentOfficeRoutes = require("./routes/governmentOfficeRoutes");
 const authRoutes = require("./routes/authRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const complaintRoutes = require("./routes/complaintRoutes");
 const { seedAdmin, createDemoAccounts } = require("./controllers/authController");
 
 const app = express();
@@ -29,6 +30,7 @@ app.use("/api/hospitals", hospitalRoutes);
 app.use("/api/government-offices", governmentOfficeRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/complaints", complaintRoutes);
 
 app.get("/", (req, res) => {
   res.json({

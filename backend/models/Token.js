@@ -39,6 +39,13 @@ const tokenSchema = new mongoose.Schema(
       ref: "GovernmentOffice",
     },
 
+    // Logged-in user who booked this token
+user: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  default: null,
+},
+
     officer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Officer",
@@ -78,13 +85,19 @@ const tokenSchema = new mongoose.Schema(
     },
 
     createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+  type: Date,
+  default: Date.now,
+},
 
-    servedAt: {
-      type: Date,
-    },
+startedAt: {
+  type: Date,
+  default: null,
+},
+
+servedAt: {
+  type: Date,
+  default: null,
+},
   },
   {
     timestamps: true,

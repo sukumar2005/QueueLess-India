@@ -1,0 +1,22 @@
+{
+    "sourceFile": "frontend/src/components/ProtectedRoute.jsx",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1787142528007,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1787142601983,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,5 @@\n-import React from \"react\";\r\n+\r\n import { Navigate, Outlet, useLocation } from \"react-router-dom\";\r\n \r\n function ProtectedRoute({ session, allowedRoles = [] }) {\r\n   const location = useLocation();\r\n"
+                }
+            ],
+            "date": 1787142528007,
+            "name": "Commit-0",
+            "content": "import React from \"react\";\r\nimport { Navigate, Outlet, useLocation } from \"react-router-dom\";\r\n\r\nfunction ProtectedRoute({ session, allowedRoles = [] }) {\r\n  const location = useLocation();\r\n\r\n  // User is not logged in\r\n  if (!session) {\r\n    return (\r\n      <Navigate\r\n        to=\"/login\"\r\n        state={{ from: location.pathname }}\r\n        replace\r\n      />\r\n    );\r\n  }\r\n\r\n  const role = session?.role?.trim().toUpperCase();\r\n\r\n  // Any authenticated role can access\r\n  if (allowedRoles.length === 0) {\r\n    return <Outlet />;\r\n  }\r\n\r\n  const normalizedRoles = allowedRoles.map((item) =>\r\n    item.trim().toUpperCase()\r\n  );\r\n\r\n  // Admin can access everything\r\n  if (role === \"ADMIN\") {\r\n    return <Outlet />;\r\n  }\r\n\r\n  // Check user's role\r\n  if (normalizedRoles.includes(role)) {\r\n    return <Outlet />;\r\n  }\r\n\r\n  // Unauthorized role\r\n  return <Navigate to=\"/\" replace />;\r\n}\r\n\r\nexport default ProtectedRoute;"
+        }
+    ]
+}
