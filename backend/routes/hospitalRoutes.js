@@ -5,6 +5,7 @@ const {
   getHospitalDoctors,
   updateDoctorAttendance,
   createHospitalToken,
+  getMyHospitalAppointments,
   getHospitalQueueStatus,
   callNextHospitalToken,
   completeHospitalToken,
@@ -41,6 +42,18 @@ router.get(
 router.get(
   "/:id/doctors",
   getHospitalDoctors
+);
+
+// ======================================================
+// MY HOSPITAL APPOINTMENTS
+// GET /api/v1/hospitals/my-appointments
+// ======================================================
+
+router.get(
+  "/my-appointments",
+  authMiddleware,
+  requireRole("USER"),
+  getMyHospitalAppointments
 );
 
 // ======================================================

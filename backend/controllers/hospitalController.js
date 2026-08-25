@@ -814,27 +814,29 @@ const createHospitalToken = async (req, res) => {
     // ------------------------------------------
     // CREATE TOKEN
     // ------------------------------------------
+const token = await Token.create({
+  tokenNumber,
 
-    const token = await Token.create({
-      tokenNumber,
+  tokenType: "hospital",
 
-      tokenType: "hospital",
+  source,
 
-      source,
+  // Logged-in user who booked this appointment
+  user: req.user?._id || null,
 
-      hospital: hospitalId,
+  hospital: hospitalId,
 
-      doctor: doctorId,
+  doctor: doctorId,
 
-      problem,
+  problem,
 
-      expectedTime,
+  expectedTime,
 
-      citizenName:
-        patientName.trim(),
+  citizenName:
+    patientName.trim(),
 
-      status: "waiting",
-    });
+  status: "waiting",
+});
 
     // ------------------------------------------
     // RESPONSE
@@ -894,6 +896,50 @@ const createHospitalToken = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+// ======================================================
+// GET MY HOSPITAL APPOINTMENTS
+// GET /api/v1/hospitals/my-appointments
+// ======================================================
+
+const getMyHospitalAppointments = async (req, res) => {
+  try {
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const appointments = await Token.find({
+      user: req.user._id,
+      tokenType: "hospital",
+    })
+      .populate(
+        "hospital",
+        "name address city district"
+      )
+      .populate(
+        "doctor",
+        "name specialization averageConsultationTime room"
+      )
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      appointments,
+    });
+  } catch (error) {
+    console.error(
+      "Get my hospital appointments error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load your appointments",
     });
   }
 };
@@ -1441,6 +1487,7 @@ module.exports = {
   callNextHospitalToken,
   completeHospitalToken,
   skipHospitalToken,
+  getMyHospitalAppointments,
 
   diseases,
 };

@@ -39,6 +39,13 @@ const tokenSchema = new mongoose.Schema(
       ref: "GovernmentOffice",
     },
 
+    // Logged-in user who booked this token
+user: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  default: null,
+},
+
     officer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Officer",

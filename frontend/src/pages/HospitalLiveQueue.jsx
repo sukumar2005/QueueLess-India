@@ -5,12 +5,12 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  "http://localhost:5000/api/v1";
+  "http://localhost:5000/api";
 
 function HospitalLiveQueue() {
   const [queue, setQueue] = useState([]);
@@ -21,9 +21,17 @@ function HospitalLiveQueue() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const loadQueue = async () => {
+  // ======================================================
+  // LOAD LIVE QUEUE
+  // ======================================================
+
+  const loadQueue = useCallback(async () => {
     try {
       setError("");
+
+      // ------------------------------------------
+      // GET SAVED APPOINTMENT
+      // ------------------------------------------
 
       const savedToken = localStorage.getItem(
         "queueless_hospital_token"
@@ -35,6 +43,10 @@ function HospitalLiveQueue() {
         return;
       }
 
+      // ------------------------------------------
+      // PARSE APPOINTMENT
+      // ------------------------------------------
+
       let parsedToken;
 
       try {
@@ -45,13 +57,25 @@ function HospitalLiveQueue() {
         return;
       }
 
+      // ------------------------------------------
+      // GET HOSPITAL ID
+      // ------------------------------------------
+
       const hospitalId =
         parsedToken.hospital?._id ||
         parsedToken.hospital;
 
+      // ------------------------------------------
+      // GET DOCTOR ID
+      // ------------------------------------------
+
       const doctorId =
         parsedToken.doctor?._id ||
         parsedToken.doctor;
+
+      // ------------------------------------------
+      // VALIDATE IDS
+      // ------------------------------------------
 
       if (!hospitalId || !doctorId) {
         setError(
@@ -61,21 +85,64 @@ function HospitalLiveQueue() {
         return;
       }
 
+      console.log(
+        "========== LOADING LIVE QUEUE =========="
+      );
+
+      console.log(
+        "Hospital ID:",
+        hospitalId
+      );
+
+      console.log(
+        "Doctor ID:",
+        doctorId
+      );
+
+      // ------------------------------------------
+      // API REQUEST
+      // ------------------------------------------
+
       const response = await fetch(
         `${API_URL}/hospitals/queue/status?hospitalId=${hospitalId}&doctorId=${doctorId}`
       );
 
+      console.log(
+        "Queue HTTP status:",
+        response.status
+      );
+
+      // ------------------------------------------
+      // READ RESPONSE
+      // ------------------------------------------
+
       const data = await response.json();
+
+      console.log(
+        "Queue API response:",
+        data
+      );
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Unable to load live queue."
+          data.message ||
+            "Unable to load live queue."
         );
       }
 
-      const latestQueue = Array.isArray(data.queue)
+      // ------------------------------------------
+      // QUEUE DATA
+      // ------------------------------------------
+
+      const latestQueue = Array.isArray(
+        data.queue
+      )
         ? data.queue
         : [];
+
+      // ------------------------------------------
+      // FIND USER TOKEN
+      // ------------------------------------------
 
       const latestToken =
         latestQueue.find(
@@ -84,10 +151,19 @@ function HospitalLiveQueue() {
             String(parsedToken._id)
         ) || parsedToken;
 
+      // ------------------------------------------
+      // WAITING TOKENS
+      // ------------------------------------------
+
       const waitingTokens =
         latestQueue.filter(
-          (token) => token.status === "waiting"
+          (token) =>
+            token.status === "waiting"
         );
+
+      // ------------------------------------------
+      // FIND USER POSITION
+      // ------------------------------------------
 
       const userIndex =
         waitingTokens.findIndex(
@@ -96,11 +172,19 @@ function HospitalLiveQueue() {
             String(parsedToken._id)
         );
 
+      // ------------------------------------------
+      // AVERAGE CONSULTATION TIME
+      // ------------------------------------------
+
       const averageTime =
         Number(
           latestToken.doctor
             ?.averageConsultationTime
         ) || 15;
+
+      // ------------------------------------------
+      // UPDATE STATE
+      // ------------------------------------------
 
       setQueue(latestQueue);
 
@@ -110,15 +194,29 @@ function HospitalLiveQueue() {
 
       setUserToken(latestToken);
 
+      // ------------------------------------------
+      // PEOPLE AHEAD
+      // ------------------------------------------
+
       setPeopleAhead(
-        userIndex >= 0 ? userIndex : 0
+        userIndex >= 0
+          ? userIndex
+          : 0
       );
+
+      // ------------------------------------------
+      // ESTIMATED WAIT
+      // ------------------------------------------
 
       setEstimatedWait(
         userIndex >= 0
           ? userIndex * averageTime
           : 0
       );
+
+      // ------------------------------------------
+      // UPDATE LOCAL STORAGE
+      // ------------------------------------------
 
       localStorage.setItem(
         "queueless_hospital_token",
@@ -137,14 +235,21 @@ function HospitalLiveQueue() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // ======================================================
+  // INITIAL LOAD + AUTO REFRESH
+  // ======================================================
 
   useEffect(() => {
-    // Delay the first request so React's
-    // set-state-in-effect lint rule is satisfied.
+    // Delay first request
+    // to avoid unnecessary effect warning.
+
     const firstLoad = setTimeout(() => {
       loadQueue();
     }, 0);
+
+    // Refresh queue every 5 seconds.
 
     const interval = setInterval(() => {
       loadQueue();
@@ -154,7 +259,11 @@ function HospitalLiveQueue() {
       clearTimeout(firstLoad);
       clearInterval(interval);
     };
-  }, []);
+  }, [loadQueue]);
+
+  // ======================================================
+  // UI
+  // ======================================================
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10">
@@ -187,7 +296,9 @@ function HospitalLiveQueue() {
           >
             <RefreshCw
               className={`h-4 w-4 ${
-                loading ? "animate-spin" : ""
+                loading
+                  ? "animate-spin"
+                  : ""
               }`}
             />
 
@@ -217,6 +328,7 @@ function HospitalLiveQueue() {
                 "None"}
             </p>
 
+            {/* YOUR TOKEN */}
             <div className="mt-8 rounded-3xl bg-blue-700 p-8 text-white">
 
               <p className="text-sm font-semibold text-blue-200">
@@ -230,14 +342,17 @@ function HospitalLiveQueue() {
 
               {userToken?.status && (
                 <p className="mt-4 text-lg font-semibold capitalize">
-                  Status: {userToken.status}
+                  Status:{" "}
+                  {userToken.status}
                 </p>
               )}
 
             </div>
 
+            {/* DOCTOR */}
             {userToken?.doctor?.name && (
               <div className="mt-6">
+
                 <p className="text-sm text-slate-500">
                   Doctor
                 </p>
@@ -245,6 +360,7 @@ function HospitalLiveQueue() {
                 <p className="font-bold text-slate-900">
                   {userToken.doctor.name}
                 </p>
+
               </div>
             )}
 
@@ -352,10 +468,13 @@ function HospitalLiveQueue() {
             (token) =>
               token.status === "waiting"
           ).length === 0 ? (
+
             <p className="mt-5 text-slate-500">
               No patients are currently waiting.
             </p>
+
           ) : (
+
             <div className="mt-4 divide-y divide-slate-100">
 
               {queue
@@ -365,6 +484,7 @@ function HospitalLiveQueue() {
                     "waiting"
                 )
                 .map((token, index) => (
+
                   <div
                     key={token._id}
                     className={`flex items-center justify-between py-4 ${
@@ -388,7 +508,8 @@ function HospitalLiveQueue() {
                     </div>
 
                     <span className="text-sm capitalize text-slate-500">
-                      {token.source || "online"}
+                      {token.source ||
+                        "online"}
                     </span>
 
                   </div>
@@ -399,7 +520,7 @@ function HospitalLiveQueue() {
 
         </section>
 
-        {/* BACK / BOOK ANOTHER */}
+        {/* BOOK ANOTHER APPOINTMENT */}
         <div className="mt-8 flex gap-4">
 
           <Link
@@ -415,6 +536,10 @@ function HospitalLiveQueue() {
     </main>
   );
 }
+
+// ======================================================
+// INFO COMPONENT
+// ======================================================
 
 function Info({
   icon,
@@ -443,6 +568,10 @@ function Info({
     </div>
   );
 }
+
+// ======================================================
+// DETAIL COMPONENT
+// ======================================================
 
 function Detail({
   label,
