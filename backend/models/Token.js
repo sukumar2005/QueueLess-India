@@ -10,6 +10,7 @@ const tokenSchema = new mongoose.Schema(
     service: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Service",
+      default: null,
     },
 
     tokenType: {
@@ -27,40 +28,46 @@ const tokenSchema = new mongoose.Schema(
     hospital: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Hospital",
+      default: null,
     },
 
     doctor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Doctor",
+      default: null,
     },
 
     governmentOffice: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "GovernmentOffice",
+      default: null,
     },
 
-    // Logged-in user who booked this token
-user: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User",
-  default: null,
-},
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
 
     officer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Officer",
+      default: null,
     },
 
     phone: {
       type: String,
+      default: "",
     },
 
     problem: {
       type: String,
+      default: "",
     },
 
     expectedTime: {
       type: String,
+      default: "",
     },
 
     citizenName: {
@@ -85,23 +92,26 @@ user: {
     },
 
     createdAt: {
-  type: Date,
-  default: Date.now,
-},
+      type: Date,
+      default: Date.now,
+    },
 
-startedAt: {
-  type: Date,
-  default: null,
-},
+    startedAt: {
+      type: Date,
+      default: null,
+    },
 
-servedAt: {
-  type: Date,
-  default: null,
-},
+    servedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = mongoose.model("Token", tokenSchema);
+module.exports = mongoose.model(
+  "Token",
+  tokenSchema
+);

@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1787058468233,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1787823713996,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -13,13 +13,15 @@\n     },\n \n     designation: {\n       type: String,\n+      default: \"\",\n     },\n \n     governmentOffice: {\n       type: mongoose.Schema.Types.ObjectId,\n       ref: \"GovernmentOffice\",\n+      required: true,\n     },\n \n     counter: {\n       type: Number,\n@@ -34,41 +36,55 @@\n     currentWaiting: {\n       type: Number,\n       default: 0,\n     },\n+\n     attendanceStatus: {\n       type: String,\n-      enum: [\"Present\", \"Absent\", \"On Break\", \"Away\"],\n+      enum: [\n+        \"Present\",\n+        \"Absent\",\n+        \"On Break\",\n+        \"Away\",\n+      ],\n       default: \"Present\",\n     },\n+\n     isOnBreak: {\n       type: Boolean,\n       default: false,\n     },\n+\n     workingHoursStart: {\n       type: String,\n       default: \"09:00\",\n     },\n+\n     workingHoursEnd: {\n       type: String,\n       default: \"18:00\",\n     },\n+\n     breakReason: {\n       type: String,\n       default: \"\",\n     },\n+\n     lastCheckInAt: {\n       type: Date,\n       default: null,\n     },\n+\n     lastBreakStartedAt: {\n       type: Date,\n       default: null,\n     },\n+\n     lastBreakEndedAt: {\n       type: Date,\n       default: null,\n     },\n+\n     averageServiceTime: {\n       type: Number,\n       default: 15,\n     },\n@@ -92,5 +108,8 @@\n     timestamps: true,\n   }\n );\n \n-module.exports = mongoose.model(\"Officer\", officerSchema);\n+module.exports = mongoose.model(\n+  \"Officer\",\n+  officerSchema\n+);\n\\ No newline at end of file\n"
                 }
             ],
             "date": 1787058468233,

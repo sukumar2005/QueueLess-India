@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 
 import { QueueProvider } from "./context/QueueContext";
 import AppShell from "./components/AppShell";
+
 import TrackAppointment from "./pages/TrackAppointment";
 import HospitalLiveQueue from "./pages/HospitalLiveQueue";
+import OfficeDashboard from "./pages/OfficeDashboard";
+import OfficeLiveQueue from "./pages/OfficeLiveQueue";
 
 const getStoredSession = () => {
   try {
@@ -17,9 +20,7 @@ const getStoredSession = () => {
 };
 
 function App() {
-  const [session, setSession] = useState(
-    getStoredSession
-  );
+  const [session, setSession] = useState(getStoredSession);
 
   useEffect(() => {
     if (session) {
@@ -39,27 +40,51 @@ function App() {
   return (
     <QueueProvider>
       <BrowserRouter>
-
         <Routes>
 
           {/* ==================================================
               TRACK APPOINTMENT
-              ================================================== */}
+          ================================================== */}
 
           <Route
             path="/track-appointment"
-            element={
-              <TrackAppointment />
-            }
+            element={<TrackAppointment />}
           />
-          <Route
-  path="/hospital-queue/:tokenId"
-  element={<HospitalLiveQueue />}
-/>
+
 
           {/* ==================================================
-              ALL OTHER PAGES
-              ================================================== */}
+              HOSPITAL LIVE QUEUE
+          ================================================== */}
+
+          <Route
+            path="/hospital-queue/:tokenId"
+            element={<HospitalLiveQueue />}
+          />
+
+
+          {/* ==================================================
+              GOVERNMENT OFFICE DASHBOARD
+          ================================================== */}
+
+          <Route
+            path="/office/dashboard"
+            element={<OfficeDashboard />}
+          />
+
+
+          {/* ==================================================
+              GOVERNMENT OFFICE LIVE QUEUE
+          ================================================== */}
+
+          <Route
+            path="/office-queue/:tokenId"
+            element={<OfficeLiveQueue />}
+          />
+
+
+          {/* ==================================================
+              ALL OTHER APPLICATION PAGES
+          ================================================== */}
 
           <Route
             path="*"
@@ -73,7 +98,6 @@ function App() {
           />
 
         </Routes>
-
       </BrowserRouter>
     </QueueProvider>
   );

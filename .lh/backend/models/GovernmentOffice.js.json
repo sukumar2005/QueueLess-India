@@ -1,0 +1,18 @@
+{
+    "sourceFile": "backend/models/GovernmentOffice.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1787641045301,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1787641045301,
+            "name": "Commit-0",
+            "content": "const mongoose = require(\"mongoose\");\n\nconst governmentOfficeSchema = new mongoose.Schema(\n  {\n    name: {\n      type: String,\n      required: true,\n      trim: true,\n    },\n\n    type: {\n      type: String,\n      required: true,\n      trim: true,\n    },\n\n    state: {\n      type: String,\n      required: true,\n      trim: true,\n    },\n\n    district: {\n      type: String,\n      required: true,\n      trim: true,\n    },\n\n    village: {\n      type: String,\n      required: true,\n      trim: true,\n    },\n\n    address: {\n      type: String,\n      required: true,\n      trim: true,\n    },\n\n    available: {\n      type: Boolean,\n      default: true,\n    },\n  },\n  {\n    timestamps: true,\n  }\n);\n\nmodule.exports = mongoose.model(\n  \"GovernmentOffice\",\n  governmentOfficeSchema\n);"
+        }
+    ]
+}

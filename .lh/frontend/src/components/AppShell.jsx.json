@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 4,
+            "activePatchIndex": 6,
             "patches": [
                 {
                     "date": 1787145555817,
@@ -24,6 +24,14 @@
                 {
                     "date": 1787208783007,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -395,8 +395,12 @@\n               />\r\n             )\r\n           }\r\n         />\r\n+        <Route\r\n+  path=\"/register\"\r\n+  element={<RegisterPage />}\r\n+/>\r\n \r\n         <Route\r\n           path=\"/complaints\"\r\n           element={<Complaints />}\r\n@@ -506,12 +510,9 @@\n               />\r\n             )\r\n           }\r\n         />\r\n-        <Route\r\n-  path=\"/register\"\r\n-  element={<RegisterPage />}\r\n-/>\r\n+        \r\n \r\n       </Routes>\r\n     </>\r\n   );\r\n"
+                },
+                {
+                    "date": 1787647462939,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -13,9 +13,9 @@\n import LoginPage from \"../pages/LoginPage\";\r\n import Services from \"../pages/Services\";\r\n import ServiceDetails from \"../pages/ServiceDetails\";\r\n import LiveQueue from \"../pages/LiveQueue\";\r\n-import OfficerDashboard from \"../pages/OfficerDashboard\";\r\n+import OfficeDashboard from \"../pages/OfficeDashboard\";\r\n import AdminDashboard from \"../pages/AdminDashboard\";\r\n import TokenPage from \"../pages/TokenPage\";\r\n import Hospitals from \"../pages/Hospitals\";\r\n import GovernmentOffices from \"../pages/GovernmentOffices\";\r\n"
+                },
+                {
+                    "date": 1787647556657,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -24,9 +24,9 @@\n import AiAssistant from \"../pages/AiAssistant\";\r\n import HospitalLiveQueue from \"../pages/HospitalLiveQueue\";\r\n import HospitalDashboard from \"../pages/HospitalDashboard\";\r\n import OfficeLiveQueue from \"../pages/OfficeLiveQueue\";\r\n-import OfficeDashboard from \"../pages/OfficeDashboard\";\r\n+\r\n import RegisterPage from \"../pages/RegisterPage\";\r\n \r\n const API_URL =\r\n   import.meta.env.VITE_API_URL ||\r\n@@ -489,9 +489,9 @@\n         ====================================== */}\r\n \r\n         <Route\r\n           path=\"/officer\"\r\n-          element={<OfficerDashboard />}\r\n+          element={<OfficeDashboard />}\r\n         />\r\n \r\n         {/* ======================================\r\n             ADMIN\r\n"
                 }
             ],
             "date": 1787145555817,

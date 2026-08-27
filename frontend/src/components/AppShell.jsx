@@ -14,7 +14,7 @@ import LoginPage from "../pages/LoginPage";
 import Services from "../pages/Services";
 import ServiceDetails from "../pages/ServiceDetails";
 import LiveQueue from "../pages/LiveQueue";
-import OfficerDashboard from "../pages/OfficerDashboard";
+import OfficeDashboard from "../pages/OfficeDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
 import TokenPage from "../pages/TokenPage";
 import Hospitals from "../pages/Hospitals";
@@ -25,7 +25,7 @@ import AiAssistant from "../pages/AiAssistant";
 import HospitalLiveQueue from "../pages/HospitalLiveQueue";
 import HospitalDashboard from "../pages/HospitalDashboard";
 import OfficeLiveQueue from "../pages/OfficeLiveQueue";
-import OfficeDashboard from "../pages/OfficeDashboard";
+
 import RegisterPage from "../pages/RegisterPage";
 
 const API_URL =
@@ -490,7 +490,7 @@ function AppShell({ session, setSession, logout }) {
 
         <Route
           path="/officer"
-          element={<OfficerDashboard />}
+          element={<OfficeDashboard />}
         />
 
         {/* ======================================

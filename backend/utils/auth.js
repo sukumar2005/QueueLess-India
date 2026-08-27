@@ -5,6 +5,16 @@ const JWT_SECRET =
   process.env.JWT_SECRET || "queueless-india-dev-secret";
 
 // ======================================================
+// ROLE NORMALIZER
+// ======================================================
+
+const normalizeRole = (role) => {
+  return String(role || "")
+    .trim()
+    .toUpperCase();
+};
+
+// ======================================================
 // GENERATE JWT TOKEN
 // ======================================================
 
@@ -12,7 +22,7 @@ const generateToken = (user) => {
   return jwt.sign(
     {
       userId: user._id,
-      role: user.role,
+      role: normalizeRole(user.role),
       hospitalId: user.hospitalId || null,
       officeId: user.officeId || null,
       username: user.username,
@@ -33,7 +43,7 @@ const authMiddleware = async (req, res, next) => {
     const authHeader = req.headers.authorization || "";
 
     const token = authHeader.startsWith("Bearer ")
-      ? authHeader.replace("Bearer ", "")
+      ? authHeader.replace("Bearer ", "").trim()
       : null;
 
     if (!token) {
@@ -45,7 +55,9 @@ const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    const user = await User.findById(decoded.userId).select("-password");
+    const user = await User.findById(decoded.userId).select(
+      "-password"
+    );
 
     if (!user || !user.active) {
       return res.status(401).json({
@@ -54,13 +66,24 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // Attach authenticated user to request
+    // ==================================================
+    // NORMALIZE ROLE
+    // ==================================================
+
+    const role = normalizeRole(
+      decoded.role || user.role
+    );
+
+    // ==================================================
+    // ATTACH USER TO REQUEST
+    // ==================================================
+
     req.user = {
       ...user.toObject(),
 
       userId: user._id,
 
-      role: decoded.role || user.role,
+      role,
 
       hospitalId:
         decoded.hospitalId ||
@@ -79,7 +102,10 @@ const authMiddleware = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("Authentication error:", error.message);
+    console.error(
+      "Authentication error:",
+      error.message
+    );
 
     return res.status(401).json({
       success: false,
@@ -93,6 +119,9 @@ const authMiddleware = async (req, res, next) => {
 // ======================================================
 
 const requireRole = (...allowedRoles) => {
+  const normalizedAllowedRoles =
+    allowedRoles.map(normalizeRole);
+
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
@@ -101,14 +130,29 @@ const requireRole = (...allowedRoles) => {
       });
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    const currentRole = normalizeRole(
+      req.user.role
+    );
+
+    if (
+      !normalizedAllowedRoles.includes(currentRole)
+    ) {
+      console.log("ROLE ACCESS DENIED:", {
+        currentRole,
+        allowedRoles: normalizedAllowedRoles,
+        username: req.user.username,
+      });
+
       return res.status(403).json({
         success: false,
         message: "Access denied for this role",
-        currentRole: req.user.role,
-        allowedRoles,
+        currentRole,
+        allowedRoles: normalizedAllowedRoles,
       });
     }
+
+    // Keep normalized role
+    req.user.role = currentRole;
 
     next();
   };
@@ -118,10 +162,12 @@ const requireRole = (...allowedRoles) => {
 // HOSPITAL ACCESS
 // ======================================================
 
-const requireHospitalAccess = async (req, res, next) => {
+const requireHospitalAccess = async (
+  req,
+  res,
+  next
+) => {
   try {
-    // IMPORTANT:
-    // authMiddleware must run before this middleware.
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -130,12 +176,13 @@ const requireHospitalAccess = async (req, res, next) => {
     }
 
     const user = req.user;
+    const role = normalizeRole(user.role);
 
     // --------------------------------------------------
     // ADMIN
     // --------------------------------------------------
 
-    if (user.role === "ADMIN") {
+    if (role === "ADMIN") {
       return next();
     }
 
@@ -143,7 +190,7 @@ const requireHospitalAccess = async (req, res, next) => {
     // HOSPITAL STAFF
     // --------------------------------------------------
 
-    if (user.role !== "HOSPITAL") {
+    if (role !== "HOSPITAL") {
       return res.status(403).json({
         success: false,
         message: "Hospital access required",
@@ -151,18 +198,19 @@ const requireHospitalAccess = async (req, res, next) => {
     }
 
     // --------------------------------------------------
-    // USER MUST HAVE HOSPITAL ID
+    // HOSPITAL ID
     // --------------------------------------------------
 
     if (!user.hospitalId) {
       return res.status(400).json({
         success: false,
-        message: "Hospital ID is not assigned to this user",
+        message:
+          "Hospital ID is not assigned to this user",
       });
     }
 
     // --------------------------------------------------
-    // FIND REQUESTED HOSPITAL
+    // REQUESTED HOSPITAL
     // --------------------------------------------------
 
     const hospitalId =
@@ -173,20 +221,21 @@ const requireHospitalAccess = async (req, res, next) => {
       req.query?.id;
 
     // --------------------------------------------------
-    // VERIFY HOSPITAL OWNERSHIP
+    // VERIFY ACCESS
     // --------------------------------------------------
 
     if (
       hospitalId &&
-      String(user.hospitalId) !== String(hospitalId)
+      String(user.hospitalId) !==
+        String(hospitalId)
     ) {
       return res.status(403).json({
         success: false,
-        message: "You can access only your hospital",
+        message:
+          "You can access only your hospital",
       });
     }
 
-    // Make hospital ID available to controllers
     req.user.hospitalId = user.hospitalId;
 
     next();
@@ -198,7 +247,8 @@ const requireHospitalAccess = async (req, res, next) => {
 
     return res.status(500).json({
       success: false,
-      message: "Hospital access validation failed",
+      message:
+        "Hospital access validation failed",
     });
   }
 };
@@ -207,7 +257,11 @@ const requireHospitalAccess = async (req, res, next) => {
 // GOVERNMENT OFFICE ACCESS
 // ======================================================
 
-const requireOfficeAccess = async (req, res, next) => {
+const requireOfficeAccess = async (
+  req,
+  res,
+  next
+) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -217,27 +271,56 @@ const requireOfficeAccess = async (req, res, next) => {
     }
 
     const user = req.user;
+    const role = normalizeRole(user.role);
 
-    // ADMIN can access any office
-    if (user.role === "ADMIN") {
+    console.log("OFFICE ACCESS CHECK:", {
+      username: user.username,
+      role,
+      officeId: user.officeId,
+      requestedOfficeId:
+        req.params?.officeId ||
+        req.params?.id ||
+        req.body?.officeId ||
+        req.query?.officeId ||
+        req.query?.id,
+    });
+
+    // --------------------------------------------------
+    // ADMIN
+    // --------------------------------------------------
+
+    if (role === "ADMIN") {
       return next();
     }
 
-    // Only government office users
-    if (user.role !== "GOVERNMENT OFFICE") {
+    // --------------------------------------------------
+    // GOVERNMENT OFFICE
+    // --------------------------------------------------
+
+    if (role !== "GOVERNMENT OFFICE") {
       return res.status(403).json({
         success: false,
-        message: "Government office access required",
+        message:
+          "Government office access required",
+        currentRole: role,
       });
     }
 
-    // User must have office ID
+    // --------------------------------------------------
+    // OFFICE ID REQUIRED
+    // --------------------------------------------------
+
     if (!user.officeId) {
       return res.status(400).json({
         success: false,
-        message: "Office ID is not assigned to this user",
+        message:
+          "Office ID is not assigned to this user",
       });
     }
+
+    // --------------------------------------------------
+    // REQUESTED OFFICE
+    // --------------------------------------------------
 
     const officeId =
       req.params?.officeId ||
@@ -246,15 +329,27 @@ const requireOfficeAccess = async (req, res, next) => {
       req.query?.officeId ||
       req.query?.id;
 
+    // --------------------------------------------------
+    // VERIFY OFFICE ACCESS
+    // --------------------------------------------------
+
     if (
       officeId &&
-      String(user.officeId) !== String(officeId)
+      String(user.officeId) !==
+        String(officeId)
     ) {
       return res.status(403).json({
         success: false,
-        message: "You can access only your office",
+        message:
+          "You can access only your office",
+        userOfficeId: String(user.officeId),
+        requestedOfficeId: String(officeId),
       });
     }
+
+    // --------------------------------------------------
+    // MAKE OFFICE ID AVAILABLE
+    // --------------------------------------------------
 
     req.user.officeId = user.officeId;
 
@@ -267,13 +362,14 @@ const requireOfficeAccess = async (req, res, next) => {
 
     return res.status(500).json({
       success: false,
-      message: "Office access validation failed",
+      message:
+        "Office access validation failed",
     });
   }
 };
 
 // ======================================================
-// EXPORT EVERYTHING
+// EXPORT
 // ======================================================
 
 module.exports = {

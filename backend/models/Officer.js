@@ -14,11 +14,13 @@ const officerSchema = new mongoose.Schema(
 
     designation: {
       type: String,
+      default: "",
     },
 
     governmentOffice: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "GovernmentOffice",
+      required: true,
     },
 
     counter: {
@@ -35,39 +37,53 @@ const officerSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+
     attendanceStatus: {
       type: String,
-      enum: ["Present", "Absent", "On Break", "Away"],
+      enum: [
+        "Present",
+        "Absent",
+        "On Break",
+        "Away",
+      ],
       default: "Present",
     },
+
     isOnBreak: {
       type: Boolean,
       default: false,
     },
+
     workingHoursStart: {
       type: String,
       default: "09:00",
     },
+
     workingHoursEnd: {
       type: String,
       default: "18:00",
     },
+
     breakReason: {
       type: String,
       default: "",
     },
+
     lastCheckInAt: {
       type: Date,
       default: null,
     },
+
     lastBreakStartedAt: {
       type: Date,
       default: null,
     },
+
     lastBreakEndedAt: {
       type: Date,
       default: null,
     },
+
     averageServiceTime: {
       type: Number,
       default: 15,
@@ -93,4 +109,7 @@ const officerSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Officer", officerSchema);
+module.exports = mongoose.model(
+  "Officer",
+  officerSchema
+);
